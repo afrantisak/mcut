@@ -1,10 +1,8 @@
 #include "receiver.h"
 #include <iostream>
 #include <boost/asio.hpp>
-#include <boost/program_options.hpp>
 #include <boost/lexical_cast.hpp>
-
-namespace po = boost::program_options;
+#include "ArgParser.h"
 
 struct Options
 {
@@ -13,60 +11,20 @@ struct Options
     unsigned int nPort;
 };
 
-void help(std::ostream& out, const po::options_description& desc)
-{
-    out << "Usage: recorder [options] <local_ip> <remote_ip> <remote_port>" << std::endl;
-    out << desc << std::endl;
-}
-
 Options getOptions(int argc, char* argv[])
 {
-    // Declare the supported options.
-    po::options_description desc("Allowed options");
-    desc.add_options()
-        ("help", "produce help message")
-        ("local_ip", "local ip address")
-        ("remote_ip", "remote ip address")
-        ("remote_port", "remote port");
+    ArgParser args("recorder");
+    args.add_option("local_ip", "local ip address");
+    args.add_option("remote_ip", "remote ip address");
+    args.add_option("remote_port", "remote port");
     
-    po::positional_options_description p;
-    p.add("local_ip", 1);
-    p.add("remote_ip", 1);
-    p.add("remote_port", 1);
-    
-    po::variables_map vm;
-    po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
-    po::notify(vm);    
+    args.parse_args(argc, argv);
 
-    if (vm.count("help")) {
-        help(std::cout, desc);
-        throw 1;
-    }
-    
-    if (vm.count("local_ip") == 0)
-    {
-        std::cout << "ERROR: local_ip is required" << std::endl;
-        throw 1;
-    }
-    
-    if (vm.count("remote_ip") == 0)
-    {
-        std::cout << "ERROR: remote_ip is required" << std::endl;
-        throw 1;
-    }
-    
-    if (vm.count("remote_port") == 0)
-    {
-        std::cout << "ERROR: remote_port is required" << std::endl;
-        throw 1;
-    }
-    
     Options options;
-    
-    options.sLocalIp = vm["local_ip"].as<std::string>();
-    options.sRemoteIp = vm["remote_ip"].as<std::string>();
-    options.nPort = boost::lexical_cast<unsigned int>(vm["remote_port"].as<std::string>());
-    
+    options.sLocalIp = args.value("local_ip").as<std::string>();
+    options.sRemoteIp = args.value("remote_ip").as<std::string>();
+    options.nPort = boost::lexical_cast<unsigned int>(args.value("remote_port").as<std::string>());
+
     return options;    
 };
 
@@ -96,7 +54,7 @@ int main(int argc, char* argv[])
         return n;
     }
     catch (std::exception& e)
-    {
+   {
         if (e.what())
             std::cerr << "exception: " << e.what() << "\n";
     }
