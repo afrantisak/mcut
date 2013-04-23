@@ -6,33 +6,33 @@
 
 struct Options
 {
-    std::string sLocalIp;
-    std::string sRemoteIp;
-    unsigned int nPort;
-};
-
-Options getOptions(int argc, char* argv[])
-{
-    ArgParser args("recorder");
-    args.add_option("local_ip", "local ip address");
-    args.add_option("remote_ip", "remote ip address");
-    args.add_option("remote_port", "remote port");
+    typedef std::string Ip;
+    typedef short Port;
     
-    args.parse_args(argc, argv);
+    Options(int argc, char* argv[])
+    {
+        ArgParser args("recorder");
+        args.add_option("local_ip", "local ip address");
+        args.add_option("remote_ip", "remote ip address");
+        args.add_option("remote_port", "remote port");
+        
+        args.parse_args(argc, argv);
 
-    Options options;
-    options.sLocalIp = args.value("local_ip").as<std::string>();
-    options.sRemoteIp = args.value("remote_ip").as<std::string>();
-    options.nPort = boost::lexical_cast<unsigned int>(args.value("remote_port").as<std::string>());
-
-    return options;    
+        sLocalIp = args.value("local_ip").as<Ip>();
+        sRemoteIp = args.value("remote_ip").as<Ip>();
+        nPort = boost::lexical_cast<Port>(args.value("remote_port").as<std::string>());
+    }
+    
+    Ip sLocalIp;
+    Ip sRemoteIp;
+    Port nPort;
 };
 
 int main(int argc, char* argv[])
 {
     try
     {
-        Options options = getOptions(argc, argv);
+        Options options(argc, argv);
     
         Receiver::Address local_address = boost::asio::ip::address::from_string(options.sLocalIp);
         Receiver::Address remote_address = boost::asio::ip::address::from_string(options.sRemoteIp);
