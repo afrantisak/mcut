@@ -18,6 +18,11 @@ public:
     const boost::program_options::variable_value& value(const Name& sName) const;
         
 private:
+
+    // if this is an optional argument (i.e. the name begins with "-" or "--")
+    // then return the name WITHOUT the dashes.  If it is NOT an optional argument,
+    // return the empty string.
+    Name getOptional(const Name& sLong);
         
     struct Option
     {

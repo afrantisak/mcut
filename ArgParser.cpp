@@ -23,10 +23,11 @@ void ArgParser::parse_args(int argc, char* argv[])
     // Declare the supported options.
     for (auto option: m_options)
     {
-        if (option.sLong.size() && option.sLong[0] == '-')
+        Name sName = getOptional(option.sLong);
+        if (sName.size())
         {
             // TODO: remove any leading dashes and convert spaces/underscores to dashes
-            m_po_optional.add_options()(option.sLong.c_str(), option.sDescription.c_str());    
+            m_po_optional.add_options()(sName.c_str(), option.sDescription.c_str());    
         }
         else
         {
@@ -42,7 +43,8 @@ void ArgParser::parse_args(int argc, char* argv[])
         std::cout << "Usage: " << m_sDescription; 
         for (auto option: m_options)
         {
-            if (option.sLong.size() && option.sLong[0] == '-')
+            Name sName = getOptional(option.sLong);
+            if (sName.size())
             {
             }
             else
@@ -59,7 +61,8 @@ void ArgParser::parse_args(int argc, char* argv[])
     // check for required args
     for (auto option: m_options)
     {
-        if (option.sLong.size() && option.sLong[0] == '-')
+        Name sName = getOptional(option.sLong);
+        if (sName.size())
         {
         }
         else
@@ -83,3 +86,15 @@ const po::variable_value& ArgParser::value(const Name& sName) const
     return m_po_map.operator[](sName.c_str());
 }
     
+ArgParser::Name ArgParser::getOptional(const Name& sLong)
+{
+    if (sLong.size() && sLong[0] == '-')
+    {
+        Name sNice(sLong.substr(1));
+        if (sNice.size() && sNice[0] == '-')
+            sNice = sNice.substr(1);
+        return sNice;
+    }
+    
+    return Name();
+}
