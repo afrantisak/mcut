@@ -4,5 +4,5 @@ add_executable(recorder receiver.cpp recorder.cpp)
 
 ADD_DEFINITIONS("-std=c++0x") 
 
-TARGET_LINK_LIBRARIES(recorder boost_system pthread)
+TARGET_LINK_LIBRARIES(recorder boost_system boost_program_options pthread)
 
