@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <boost/lexical_cast.hpp>
 #include <boost/program_options.hpp>
 
 class ArgParser
@@ -10,15 +11,21 @@ public:
     ArgParser(Name sDescription);
     
     void add_option(Name sLong, Name sDescription);
-    
+
+    // actually process the arguments and check for errors
     void parse_args(int argc, char* argv[]);
     
-    int count(const Name& sName) const;
-
-    const boost::program_options::variable_value& value(const Name& sName) const;
+    // get the value of an argument
+    template <typename T>
+    void get(const Name& sName, T& t) const
+    {
+        t = boost::lexical_cast<T>(value(sName).as<std::string>());
+    }
         
 private:
 
+    const boost::program_options::variable_value& value(const Name& sName) const;
+    
     // if this is an optional argument (i.e. the name begins with "-" or "--")
     // then return the name WITHOUT the dashes.  If it is NOT an optional argument,
     // return the empty string.

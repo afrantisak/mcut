@@ -1,13 +1,12 @@
 #include "receiver.h"
 #include <iostream>
 #include <boost/asio.hpp>
-#include <boost/lexical_cast.hpp>
 #include "ArgParser.h"
 
 struct Options
 {
     typedef std::string Ip;
-    typedef short Port;
+    typedef int Port;
     
     Options(int argc, char* argv[])
     {
@@ -18,9 +17,9 @@ struct Options
         
         args.parse_args(argc, argv);
 
-        sLocalIp = args.value("local_ip").as<Ip>();
-        sRemoteIp = args.value("remote_ip").as<Ip>();
-        nPort = boost::lexical_cast<Port>(args.value("remote_port").as<std::string>());
+        args.get("local_ip", sLocalIp);
+        args.get("remote_ip", sRemoteIp);
+        args.get("remote_port", nPort);
     }
     
     Ip sLocalIp;

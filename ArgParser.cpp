@@ -76,11 +76,6 @@ void ArgParser::parse_args(int argc, char* argv[])
     }
 }
 
-int ArgParser::count(const Name& sName) const
-{
-    return m_po_map.count(sName.c_str());
-}
-
 const po::variable_value& ArgParser::value(const Name& sName) const 
 {
     return m_po_map.operator[](sName.c_str());
