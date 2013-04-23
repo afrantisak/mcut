@@ -37,3 +37,10 @@
 *.dmp
 *.enc
 *.aps
+
+# cmake
+CMakeFiles/*
+*.cmake
+CMakeCache.txt
+Makefile
+bin/*
