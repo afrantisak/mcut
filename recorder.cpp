@@ -1,5 +1,6 @@
 #include "receiver.h"
 #include <iostream>
+#include <iomanip>
 #include <boost/asio.hpp>
 #include "ArgParser.h"
 
@@ -72,13 +73,36 @@ int main(int argc, char* argv[])
         // create channel struct from options
         Channel channel = { "Default", options.sRemoteIp, options.nPort };
         
-        std::cout << options.bOutputAscii << std::endl;
-        std::cout << options.bOutputHex << std::endl;
-
         // set up source/sink
-        Recorder(options.sLocalIp, channel)([](const void* pData, size_t nBytes) -> bool
+        Recorder(options.sLocalIp, channel)([&](const void* pData, size_t nBytes) -> bool
         {
-            std::cout << static_cast<const char*>(pData);
+            int nPrinted = 0;
+            if (options.bOutputAscii)
+            {
+                const char* pChar = static_cast<const char*>(pData);
+                size_t nBytesLeft = nBytes;
+                while (nBytesLeft--)
+                {
+                    std::cout << *(pChar++) << "  ";
+                }
+                std::cout << std::endl;
+                nPrinted++;
+            }
+            if (options.bOutputHex)
+            {
+                const char* pChar = static_cast<const char*>(pData);
+                size_t nBytesLeft = nBytes;
+                while (nBytesLeft--)
+                {
+                    std::cout << std::setw(2) << std::setfill('0') << std::hex << static_cast<int>(*pChar++) << " " << std::dec;
+                }
+                std::cout << std::endl;
+                nPrinted++;
+            }
+            if (!nPrinted)
+                std::cout << static_cast<const char*>(pData);
+            if (nPrinted > 1)
+                std::cout << std::endl;
             return true;
         });
     }
