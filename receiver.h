@@ -1,7 +1,7 @@
 #include <vector>
 #include <boost/asio.hpp>
 
-class Channel
+struct Channel
 {
     typedef std::string Name;
     typedef std::string Ip;
