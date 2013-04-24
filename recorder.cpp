@@ -8,27 +8,25 @@ struct Options
     typedef std::string Ip;
     typedef short Port;
     
-    Options(int argc, char* argv[])
-    {
-        ArgParser args("recorder");
-        args.add_option("local_ip", "local ip address");
-        args.add_option("remote_ip", "remote ip address");
-        args.add_option("remote_port", "remote port");
-
-        // load options from the command line
-        args.parse_args(argc, argv);
-        
-        // TODO: load from a config file
-
-        // retreive the values
-        args.get("local_ip", sLocalIp);
-        args.get("remote_ip", sRemoteIp);
-        args.get("remote_port", nPort);
-    }
-    
     Ip sLocalIp;
     Ip sRemoteIp;
     Port nPort;
+    bool bOutputAscii;
+    bool bOutputHex;
+
+    Options(int argc, char* argv[])
+    {
+        ArgParser args("recorder");
+        args.add_option("local-ip", "local ip address", sLocalIp);
+        args.add_option("remote-ip", "remote ip address", sRemoteIp);
+        args.add_option("remote-port", "remote port", nPort);
+        args.add_option("--output-ascii", "output character data", bOutputAscii);
+        args.add_option("--output-hex", "output hex codes", bOutputHex);
+        
+        // TODO: load from a config file first
+        // override options from the command line
+        args.parse_args(argc, argv);
+    }
 };
 
 class Recorder
@@ -72,6 +70,9 @@ int main(int argc, char* argv[])
         
         // create channel struct from options
         Channel channel = { "Default", options.sRemoteIp, options.nPort };
+        
+        std::cout << options.bOutputAscii << std::endl;
+        std::cout << options.bOutputHex << std::endl;
 
         // set up source/sink
         Recorder(options.sLocalIp, channel)([](const void* pData, size_t nBytes) -> bool
@@ -84,11 +85,11 @@ int main(int argc, char* argv[])
     {
         return n;
     }
-    catch (std::exception& e)
-    {
-        if (e.what())
-            std::cerr << "exception: " << e.what() << "\n";
-    }
+//    catch (std::exception& e)
+//    {
+//        if (e.what())
+//            std::cerr << "exception: " << e.what() << "\n";
+ //   }
 
     return 0;
 }
