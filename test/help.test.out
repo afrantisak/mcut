@@ -1,0 +1,7 @@
+Usage: recorder <local_ip> <remote_ip> <remote_port> [options]
+Allowed options:
+  --help                show this help message
+  --local_ip            local ip address
+  --remote_ip           remote ip address
+  --remote_port         remote port
+

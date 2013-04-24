@@ -55,7 +55,7 @@ void ArgParser::parse_args(int argc, char* argv[])
         
         std::cout << " [options]" << std::endl;
         std::cout << m_po_optional << std::endl;
-        throw 1;
+        throw 0;
     }
     
     // check for required args

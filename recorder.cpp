@@ -14,9 +14,13 @@ struct Options
         args.add_option("local_ip", "local ip address");
         args.add_option("remote_ip", "remote ip address");
         args.add_option("remote_port", "remote port");
-        
-        args.parse_args(argc, argv);
 
+        // load options from the command line
+        args.parse_args(argc, argv);
+        
+        // TODO: load from a config file
+
+        // retreive the values
         args.get("local_ip", sLocalIp);
         args.get("remote_ip", sRemoteIp);
         args.get("remote_port", nPort);
