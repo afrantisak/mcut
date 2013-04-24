@@ -29,6 +29,7 @@ struct Options
     }
 };
 
+// TODO: consolidate Recorder and receiver so all the boost asio is hidden and in one place
 class Recorder
 {
 public:
@@ -85,11 +86,11 @@ int main(int argc, char* argv[])
     {
         return n;
     }
-//    catch (std::exception& e)
-//    {
-//        if (e.what())
-//            std::cerr << "exception: " << e.what() << "\n";
- //   }
+    catch (std::exception& e)
+    {
+        if (e.what())
+            std::cerr << "exception: " << e.what() << "\n";
+    }
 
     return 0;
 }
