@@ -67,10 +67,13 @@ int main(int argc, char* argv[])
 {
     try
     {
+        // get command line / config file options
         Options options(argc, argv);
         
+        // create channel struct from options
         Channel channel = { "Default", options.sRemoteIp, options.nPort };
 
+        // set up source/sink
         Recorder(options.sLocalIp, channel)([](const void* pData, size_t nBytes) -> bool
         {
             std::cout << static_cast<const char*>(pData);
