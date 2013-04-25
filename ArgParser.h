@@ -23,10 +23,7 @@ public:
     struct Option
     {
         Option(Name sLong, Name sShort, void* pValue, const std::type_info* pInfo, Name sDescription)
-        :   m_sLong(sLong),
-            m_sShort(sShort),
-            m_pValue(pValue),
-            m_pInfo(pInfo)
+        :   m_sLong(sLong), m_sShort(sShort), m_pValue(pValue), m_pInfo(pInfo), m_sDescription(sDescription)
         {
         }
         

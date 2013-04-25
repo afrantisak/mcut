@@ -30,7 +30,21 @@ bool option_assign(const ArgParser::Option& option, const po::variable_value& va
     if (*option.m_pInfo == typeid(T))
     {
         if (!value.empty())
+        {
             *reinterpret_cast<T*>(option.m_pValue) = boost::lexical_cast<T>(value.as<std::string>());
+        }
+        return true;
+    }
+    return false;
+}
+
+template<>
+bool option_assign<bool>(const ArgParser::Option& option, const po::variable_value& value)
+{
+    if (*option.m_pInfo == typeid(bool))
+    {
+        if (!value.empty())
+            *reinterpret_cast<bool*>(option.m_pValue) = boost::lexical_cast<bool>(value.as<std::string>());
         return true;
     }
     return false;
@@ -122,13 +136,16 @@ void ArgParser::parse_args(int argc, char* argv[])
     // do the conversions
     for (auto option: m_options)
     {
+        Name sName = getOptional(option.m_sLong);
+        if (sName.size() == 0)
+            sName = option.m_sLong;
         if (*option.m_pInfo == typeid(bool))
         {
-            *reinterpret_cast<bool*>(option.m_pValue) = m_po_map.count(getOptional(option.m_sLong).c_str()) ? true : false;
+            *reinterpret_cast<bool*>(option.m_pValue) = m_po_map.count(sName.c_str()) ? true : false;
         }
-        else if (option_assign<std::string>(option, value(option.m_sLong))) {}
-        else if (option_assign<int>(option, value(option.m_sLong))) {}
-        else if (option_assign<short>(option, value(option.m_sLong))) {}
+        else if (option_assign<std::string>(option, value(sName))) {}
+        else if (option_assign<int>(option, value(sName))) {}
+        else if (option_assign<short>(option, value(sName))) {}
         else
         {
             std::cout << "ERROR: ArgParser unsupported type (" << option.m_pInfo->name() << ") conversion for option " << option.m_sLong << std::endl;

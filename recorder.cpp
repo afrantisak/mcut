@@ -52,8 +52,6 @@ public:
         Receiver::Address remote_address = boost::asio::ip::address::from_string(m_channel.ip);
         short remote_port = m_channel.port;
         
-        std::cout << "Listening on " << local_address << " " << remote_address << ":" << remote_port << std::endl;
-
         boost::asio::io_service service;
         Receiver receiver(service, local_address, remote_address, remote_port, sinkCallback);
         service.run();
@@ -117,6 +115,8 @@ int main(int argc, char* argv[])
             }
         };
         
+        std::cout << "Listening on " << options.sLocalIp << " " << options.sRemoteIp << ":" << options.nPort << std::endl;
+
         Recorder::SinkCallback& sink = printRaw;
         
         // set up source/sink
@@ -126,11 +126,11 @@ int main(int argc, char* argv[])
     {
         return n;
     }
-//    catch (std::exception& e)
-//    {
-//        if (e.what())
-//            std::cerr << "exception: " << e.what() << "\n";
-//    }
+    catch (std::exception& e)
+    {
+        if (e.what())
+            std::cerr << "exception: " << e.what() << "\n";
+    }
 
     return 0;
 }
