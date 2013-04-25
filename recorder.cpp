@@ -1,5 +1,6 @@
 #include "receiver.h"
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <boost/asio.hpp>
 #include "ArgParser.h"
@@ -64,6 +65,56 @@ private:
     Channel m_channel;
 };
 
+bool recordToFileBinary(const std::string& sLocalIp, const Channel& channel, const std::string& sFileName)
+{
+    // Send multicast data to the file via std::stream
+    std::ofstream strm(sFileName, std::ofstream::binary);
+    Recorder(sLocalIp, channel)([&](const void* pData, size_t nBytes)
+    {
+        strm.write(static_cast<const char*>(pData), nBytes);
+        return true;
+    });
+}
+
+bool recordToStreamText(const std::string& sLocalIp, const Channel& channel, std::ostream& strm, bool bAscii, bool bHex)
+{
+    // Send multicast data to the printAsciiHex handler
+    Recorder(sLocalIp, channel)([&](const void* pData, size_t nBytes) -> bool
+    {
+        if (bAscii)
+        {
+            const char* pChar = static_cast<const char*>(pData);
+            size_t nBytesLeft = nBytes;
+            while (nBytesLeft--)
+            {
+                strm << *(pChar++) << "  ";
+            }
+            strm << std::endl;
+        }
+        if (bHex)
+        {
+            const char* pChar = static_cast<const char*>(pData);
+            size_t nBytesLeft = nBytes;
+            while (nBytesLeft--)
+            {
+                strm << std::setw(2) << std::setfill('0') << std::hex << static_cast<int>(*pChar++) << " " << std::dec;
+            }
+            strm << std::endl;
+        }
+        return true;
+    });
+}
+
+bool recordToStreamBinary(const std::string& sLocalIp, const Channel& channel, std::ostream& strm)
+{
+    // Send multicast data to the printRaw handler
+    Recorder(sLocalIp, channel)([&](const void* pData, size_t nBytes) -> bool
+    {
+        strm << static_cast<const char*>(pData) << std::endl;
+        return true;
+    });
+}
+
 int main(int argc, char* argv[])
 {
     try
@@ -74,53 +125,24 @@ int main(int argc, char* argv[])
         // create channel struct from options
         Channel channel = { "Default", options.sRemoteIp, options.nPort };
         
-        // function to print ascii or hex to stdout
-        Recorder::SinkCallback printAsciiHex = [&](const void* pData, size_t nBytes) -> bool
-        {
-            if (options.bOutputAscii)
-            {
-                const char* pChar = static_cast<const char*>(pData);
-                size_t nBytesLeft = nBytes;
-                while (nBytesLeft--)
-                {
-                    std::cout << *(pChar++) << "  ";
-                }
-                std::cout << std::endl;
-            }
-            if (options.bOutputHex)
-            {
-                const char* pChar = static_cast<const char*>(pData);
-                size_t nBytesLeft = nBytes;
-                while (nBytesLeft--)
-                {
-                    std::cout << std::setw(2) << std::setfill('0') << std::hex << static_cast<int>(*pChar++) << " " << std::dec;
-                }
-                std::cout << std::endl;
-            }
-            return true;
-        };
-        
-        Recorder::SinkCallback printRaw = [&](const void* pData, size_t nBytes) -> bool
-        {
-            std::cout << static_cast<const char*>(pData) << std::endl;
-            return true;
-        };
-        
-        Recorder::SinkCallback saveBinary = [&](const void* pData, size_t nBytes) -> bool
-        {
-            int nPrinted = 0;
-            if (options.sFileName.size())
-            {
-                return true;
-            }
-        };
-        
         std::cout << "Listening on " << options.sLocalIp << " " << options.sRemoteIp << ":" << options.nPort << std::endl;
-
-        Recorder::SinkCallback& sink = printRaw;
         
-        // set up source/sink
-        Recorder(options.sLocalIp, channel)(sink);
+        if (options.sFileName.size())
+        {
+            // Send multicast data to the file via std::stream
+            std::ofstream strm(options.sFileName, std::ofstream::binary);
+            recordToStreamBinary(options.sLocalIp, channel, strm);
+        }
+        else if (options.bOutputAscii || options.bOutputHex)
+        {
+            // Send multicast data to the printAsciiHex handler
+            recordToStreamText(options.sLocalIp, channel, std::cout, options.bOutputAscii, options.bOutputHex);
+        }
+        else
+        {
+            // Send multicast data to the printRaw handler
+            recordToStreamBinary(options.sLocalIp, channel, std::cout);
+        }
     }
     catch (int n)
     {
