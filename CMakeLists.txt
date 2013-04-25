@@ -14,6 +14,10 @@ ADD_DEFINITIONS("-std=c++0x")
 
 TARGET_LINK_LIBRARIES(recorder boost_system boost_program_options pthread)
 
+macro(add_test_diff name file command)
+  add_test(${name} python cmdiff.py ${file} ${command})
+endmacro(add_test_diff)
+
 add_test(help bin/recorder --help)
-add_test(help_message python cmdiff.py test/help/test.out "bin/recorder --help")
-add_test(mcast_stdout python cmdiff.py test/mcast_stdout/test.out "python test/mcast_stdout/test.py")
+add_test_diff(help_message test/help/test.out "bin/recorder --help")
+add_test_diff(mcast_stdout test/mcast_stdout/test.out "python test/mcast_stdout/test.py")

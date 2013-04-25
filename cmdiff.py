@@ -9,9 +9,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
 command = ' '.join(args.commands)
+diffcmd = "%s | diff %s -" % (command, args.file)
 
 import os, sys
-if os.system("%s | diff %s -" % (command, args.file)):
+if os.system(diffcmd):
     sys.exit(1)
 else:
     sys.exit(0)
