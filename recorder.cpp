@@ -79,13 +79,18 @@ bool recordToStreamText(Recorder& record, std::ostream& strm, bool bAscii, bool 
 {
     record([&](const void* pData, size_t nBytes) -> bool
     {
-        if (bAscii)
+        if (bAscii && bHex)
+        {
+            // TODO do something cool here
+            strm << "<NOT IMPLEMENTED>";
+        }
+        else if (bAscii)
         {
             const char* pChar = static_cast<const char*>(pData);
             size_t nBytesLeft = nBytes;
             while (nBytesLeft--)
             {
-                strm << *(pChar++) << "  ";
+                strm << *(pChar++) << " ";
             }
             strm << std::endl;
         }
