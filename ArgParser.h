@@ -12,19 +12,30 @@ public:
     ArgParser(Name sDescription);
     
     template<typename T>
-    void add_option(Name sLong, Name sDescription, T& value)
+    void add_option(Name sLong, T& value, Name sDescription)
     {
-        Option option;
-        option.sLong = sLong;
-        option.sShort = "";
-        option.sDescription = sDescription;
-        option.pValue = &value;
-        option.pInfo = &typeid(T);
-        m_options.push_back(option);
+        m_options.push_back(Option(sLong, "", &value, &typeid(T), sDescription));
     }
 
     // actually process the arguments and check for errors
     void parse_args(int argc, char* argv[]);
+    
+    struct Option
+    {
+        Option(Name sLong, Name sShort, void* pValue, const std::type_info* pInfo, Name sDescription)
+        :   m_sLong(sLong),
+            m_sShort(sShort),
+            m_pValue(pValue),
+            m_pInfo(pInfo)
+        {
+        }
+        
+        Name m_sLong;
+        Name m_sShort;
+        void* m_pValue;
+        const std::type_info* m_pInfo;
+        Name m_sDescription;
+    };
     
 private:
 
@@ -35,26 +46,7 @@ private:
     // return the empty string.
     Name getOptional(const Name& sLong);
         
-    struct Option
-    {
-        Name sLong;
-        Name sShort;
-        Name sDescription;
-        void* pValue;
-        const std::type_info* pInfo;
-        
-        template<typename T>
-        bool assign(const boost::program_options::variable_value& value)
-        {
-            if (*pInfo == typeid(T))
-            {
-                *reinterpret_cast<T*>(pValue) = boost::lexical_cast<T>(value.as<std::string>());
-                return true;
-            }
-            return false;
-        }
-        
-    };
+    void add_option(boost::program_options::options_description& desc, const Option& option, const Name& sName);
     
     Name m_sDescription;
     

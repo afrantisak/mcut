@@ -2,6 +2,40 @@
 
 namespace po = boost::program_options;
 
+template<typename T>
+bool option_add(const ArgParser::Option& option, po::options_description& desc, const std::string& sName)
+{
+    if (*option.m_pInfo == typeid(T))
+    {
+        desc.add_options()(sName.c_str(), po::value<T>(), option.m_sDescription.c_str());    
+        return true;
+    }
+    return false;
+}
+
+template<>
+bool option_add<bool>(const ArgParser::Option& option, po::options_description& desc, const std::string& sName)
+{
+    if (*option.m_pInfo == typeid(bool))
+    {
+        desc.add_options()(sName.c_str(), option.m_sDescription.c_str());    
+        return true;
+    }
+    return false;
+}
+
+template<typename T>
+bool option_assign(const ArgParser::Option& option, const po::variable_value& value)
+{
+    if (*option.m_pInfo == typeid(T))
+    {
+        if (!value.empty())
+            *reinterpret_cast<T*>(option.m_pValue) = boost::lexical_cast<T>(value.as<std::string>());
+        return true;
+    }
+    return false;
+}
+
 ArgParser::ArgParser(Name sDescription)
 :   m_sDescription(sDescription),
     m_options(),
@@ -12,24 +46,37 @@ ArgParser::ArgParser(Name sDescription)
 {
 }
 
+void ArgParser::add_option(boost::program_options::options_description& desc, const Option& option, const Name& sName)
+{
+    if (option_add<bool>(option, desc, sName)) {}
+    else if (option_add<std::string>(option, desc, sName)) {}
+    else if (option_add<int>(option, desc, sName)) {}
+    else if (option_add<short>(option, desc, sName)) {}
+    else
+    {
+        std::cout << "ERROR: ArgParser unsupported type (" << option.m_pInfo->name() << ") conversion for option " << option.m_sLong << std::endl;
+        throw 1;
+    }
+}
+
 void ArgParser::parse_args(int argc, char* argv[])
 {
-    m_po_visible.add_options()("help", "show this help message");
     m_po_all.add_options()("help", "show this help message");
+    m_po_visible.add_options()("help", "show this help message");
     
     // Declare the supported options.
     for (auto option: m_options)
     {
-        Name sName = getOptional(option.sLong);
+        Name sName = getOptional(option.m_sLong);
         if (sName.size())
         {
-            m_po_all.add_options()(sName.c_str(), option.sDescription.c_str());    
-            m_po_visible.add_options()(sName.c_str(), option.sDescription.c_str());    
+            add_option(m_po_all, option, sName);
+            add_option(m_po_visible, option, sName);
         }
         else
         {
-            m_po_all.add_options()(option.sLong.c_str(), option.sDescription.c_str());    
-            m_po_positional.add(option.sLong.c_str(), 1);
+            m_po_all.add_options()(option.m_sLong.c_str(), option.m_sDescription.c_str());    
+            m_po_positional.add(option.m_sLong.c_str(), 1);
         }
     }
     
@@ -40,13 +87,13 @@ void ArgParser::parse_args(int argc, char* argv[])
         std::cout << "Usage: " << m_sDescription; 
         for (auto option: m_options)
         {
-            Name sName = getOptional(option.sLong);
+            Name sName = getOptional(option.m_sLong);
             if (sName.size())
             {
             }
             else
             {
-                std::cout << " <" << option.sLong << ">";
+                std::cout << " <" << option.m_sLong << ">";
             }
         }
         
@@ -58,15 +105,15 @@ void ArgParser::parse_args(int argc, char* argv[])
     // check for required args
     for (auto option: m_options)
     {
-        Name sName = getOptional(option.sLong);
+        Name sName = getOptional(option.m_sLong);
         if (sName.size())
         {
         }
         else
         {
-            if (m_po_map.count(option.sLong.c_str()) == 0)
+            if (m_po_map.count(option.m_sLong.c_str()) == 0)
             {
-                std::cout << "ERROR: " << option.sLong << " is required" << std::endl;
+                std::cout << "ERROR: " << option.m_sLong << " is required" << std::endl;
                 throw 1;
             }
         }
@@ -75,16 +122,16 @@ void ArgParser::parse_args(int argc, char* argv[])
     // do the conversions
     for (auto option: m_options)
     {
-        if (*option.pInfo == typeid(bool))
+        if (*option.m_pInfo == typeid(bool))
         {
-            *reinterpret_cast<bool*>(option.pValue) = m_po_map.count(getOptional(option.sLong).c_str()) ? true : false;
+            *reinterpret_cast<bool*>(option.m_pValue) = m_po_map.count(getOptional(option.m_sLong).c_str()) ? true : false;
         }
-        else if (option.assign<std::string>(value(option.sLong))) {}
-        else if (option.assign<int>(value(option.sLong))) {}
-        else if (option.assign<short>(value(option.sLong))) {}
+        else if (option_assign<std::string>(option, value(option.m_sLong))) {}
+        else if (option_assign<int>(option, value(option.m_sLong))) {}
+        else if (option_assign<short>(option, value(option.m_sLong))) {}
         else
         {
-            std::cout << "ERROR: ArgParser unsupported type (" << option.pInfo->name() << ") conversion for option " << option.sLong << std::endl;
+            std::cout << "ERROR: ArgParser unsupported type (" << option.m_pInfo->name() << ") conversion for option " << option.m_sLong << std::endl;
             throw 1;
         }
     }

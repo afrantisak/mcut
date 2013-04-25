@@ -1,6 +1,7 @@
 Usage: recorder <local-ip> <remote-ip> <remote-port> [options]
 Allowed options:
   --help                show this help message
-  --output-ascii        output character data
-  --output-hex          output hex codes
+  --output-ascii 
+  --output-hex 
+  --output-file arg
 
