@@ -1,15 +1,15 @@
 mcut
 ====
 
-multicast utilities
+Multicast Utilities
 
 ##Requirements
 * cmake 2.8.7
 * boost 1.53.0
-* pthreads
 
-##Building
+##Build
 ```
 cmake .
 make
+make test
 ```
