@@ -77,6 +77,19 @@ bool recordText(Source& source, std::ostream& strm, bool bAscii, bool bHex)
     });
 }
 
+void record(Source& source, std::ostream& stream, Options& options)
+{
+    // determine how the output should be formatted
+    if (options.bOutFmtAscii || options.bOutFmtHex)
+    {
+        recordText(source, stream, options.bOutFmtAscii, options.bOutFmtHex);
+    }
+    else
+    {
+        recordRaw(source, stream);
+    }
+}
+
 int main(int argc, char* argv[])
 {
     try
@@ -88,19 +101,16 @@ int main(int argc, char* argv[])
         Channel channel = { "Default", options.sRemoteIp, options.nPort };
         Source source(options.sLocalIp, channel);
         
+        // determine if we should write to stdout or to a file
         if (options.sFileName.size())
         {
             std::cout << "Writing to " << options.sFileName << std::endl;
-            std::ofstream stream(options.sFileName, std::ofstream::binary);
-            recordRaw(source, stream);
-        }
-        else if (options.bOutFmtAscii || options.bOutFmtHex)
-        {
-            recordText(source, std::cout, options.bOutFmtAscii, options.bOutFmtHex);
+            std::ofstream output(options.sFileName, std::ofstream::binary);
+            record(source, output, options);
         }
         else
         {
-            recordRaw(source, std::cout);
+            record(source, std::cout, options);
         }
     }
     catch (int n)
