@@ -1,9 +1,10 @@
+#include "ArgParser.h"
 #include "receiver.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
 #include <boost/asio.hpp>
-#include "ArgParser.h"
+#include <boost/iostreams/device/mapped_file.hpp>
 
 struct Options
 {
@@ -65,7 +66,7 @@ private:
     Channel m_channel;
 };
 
-bool recordToStreamBinary(Recorder& record, std::ostream& strm)
+bool recordRaw(Recorder& record, std::ostream& strm)
 {
     record([&](const void* pData, size_t nBytes) -> bool
     {
@@ -75,7 +76,34 @@ bool recordToStreamBinary(Recorder& record, std::ostream& strm)
     });
 }
 
-bool recordToStreamText(Recorder& record, std::ostream& strm, bool bAscii, bool bHex)
+struct PacketHeader
+{
+    typedef uint64_t Length;
+    typedef uint64_t Timestamp;
+
+    PacketHeader(Length nLength)
+        :   m_nLength(nLength),
+            m_nTimestamp(0)
+    {
+        clock_gettime(CLOCK_MONOTONIC, reinterpret_cast<timespec*>(&m_nTimestamp));
+    }
+        
+    Length m_nLength;
+    Timestamp m_nTimestamp;
+};
+
+void recordPacket(Recorder& record, std::ostream& strm)
+{
+    record([&](const void* pData, size_t nBytes) -> bool
+    {
+        PacketHeader hdr(nBytes);
+        strm.write(reinterpret_cast<const char*>(&hdr), sizeof(hdr));
+        strm.write(static_cast<const char*>(pData), nBytes);
+        return true;
+    });
+}
+
+bool recordText(Recorder& record, std::ostream& strm, bool bAscii, bool bHex)
 {
     record([&](const void* pData, size_t nBytes) -> bool
     {
@@ -121,16 +149,17 @@ int main(int argc, char* argv[])
         
         if (options.sFileName.size())
         {
+            std::cout << "Writing to " << options.sFileName << std::endl;
             std::ofstream stream(options.sFileName, std::ofstream::binary);
-            recordToStreamBinary(recorder, stream);
+            recordRaw(recorder, stream);
         }
         else if (options.bOutputAscii || options.bOutputHex)
         {
-            recordToStreamText(recorder, std::cout, options.bOutputAscii, options.bOutputHex);
+            recordText(recorder, std::cout, options.bOutputAscii, options.bOutputHex);
         }
         else
         {
-            recordToStreamBinary(recorder, std::cout);
+            recordRaw(recorder, std::cout);
         }
     }
     catch (int n)

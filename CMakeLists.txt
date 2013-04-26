@@ -12,7 +12,7 @@ enable_testing()
 
 ADD_DEFINITIONS("-std=c++0x") 
 
-TARGET_LINK_LIBRARIES(recorder boost_system boost_program_options pthread)
+TARGET_LINK_LIBRARIES(recorder boost_system boost_program_options pthread rt)
 
 macro(add_test_diff name file command)
   add_test(${name} python cmdiff.py ${file} ${command})
