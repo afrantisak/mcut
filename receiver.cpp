@@ -1,6 +1,7 @@
 #include "receiver.h"
 
 using namespace boost::asio;
+using namespace mcut;
 
 Receiver::Receiver(io_service& io_service, const Address& local_address, 
                    const Address& remote_address, const Port& remote_port, Callback callback)

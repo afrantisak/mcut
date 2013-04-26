@@ -6,8 +6,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 project(mcut)
 
-add_executable(mc-echo mc-echo.cpp receiver.cpp recorder.cpp ArgParser.cpp)
-add_executable(mc-wrap mc-wrap.cpp receiver.cpp recorder.cpp ArgParser.cpp)
+add_executable(mc-echo mc-echo.cpp receiver.cpp Source.cpp ArgParser.cpp)
+add_executable(mc-wrap mc-wrap.cpp receiver.cpp Source.cpp ArgParser.cpp)
 
 enable_testing()
 

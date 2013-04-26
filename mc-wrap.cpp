@@ -1,6 +1,6 @@
 #include "ArgParser.h"
 #include "receiver.h"
-#include "recorder.h"
+#include "Source.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -47,9 +47,11 @@ struct PacketHeader
     Timestamp m_nTimestamp;
 };
 
-void recordPacket(Recorder& record, std::ostream& strm)
+using namespace mcut;
+
+void recordPacket(Source& source, std::ostream& strm)
 {
-    record([&](const void* pData, size_t nBytes) -> bool
+    source([&](const void* pData, size_t nBytes) -> bool
     {
         PacketHeader hdr(nBytes);
         strm.write(reinterpret_cast<const char*>(&hdr), sizeof(hdr));
@@ -67,17 +69,17 @@ int main(int argc, char* argv[])
         std::cout << "Listening on " << options.sLocalIp << " " << options.sRemoteIp
                   << ":" << options.nPort << std::endl;
         Channel channel = { "Default", options.sRemoteIp, options.nPort };
-        Recorder recorder(options.sLocalIp, channel);
+        Source source(options.sLocalIp, channel);
         
         if (options.sFileName.size())
         {
             std::cout << "Writing to " << options.sFileName << std::endl;
             std::ofstream stream(options.sFileName, std::ofstream::binary);
-            recordPacket(recorder, stream);
+            recordPacket(source, stream);
         }
         else
         {
-            recordPacket(recorder, std::cout);
+            recordPacket(source, std::cout);
         }
     }
     catch (int n)

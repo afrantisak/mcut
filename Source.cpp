@@ -1,13 +1,15 @@
-#include "recorder.h"
+#include "Source.h"
 #include <boost/asio.hpp>
 
-Recorder::Recorder(const Ip& sLocalIp, const Channel& channel)
+using namespace mcut;
+
+Source::Source(const Ip& sLocalIp, const Channel& channel)
 :   m_sLocalIp(sLocalIp),
     m_channel(channel)
 {
 }
 
-bool Recorder::operator()(SinkCallback sinkCallback)
+bool Source::operator()(SinkCallback sinkCallback)
 {
     Receiver::Address local_address = boost::asio::ip::address::from_string(m_sLocalIp);
     Receiver::Address remote_address = boost::asio::ip::address::from_string(m_channel.ip);

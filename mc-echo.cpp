@@ -1,6 +1,6 @@
 #include "ArgParser.h"
 #include "receiver.h"
-#include "recorder.h"
+#include "Source.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -35,9 +35,11 @@ struct Options
     }
 };
 
-bool recordRaw(Recorder& record, std::ostream& strm)
+using namespace mcut;
+
+bool recordRaw(Source& source, std::ostream& strm)
 {
-    record([&](const void* pData, size_t nBytes) -> bool
+    source([&](const void* pData, size_t nBytes) -> bool
     {
         strm.write(static_cast<const char*>(pData), nBytes);
         strm.flush();
@@ -45,9 +47,9 @@ bool recordRaw(Recorder& record, std::ostream& strm)
     });
 }
 
-bool recordText(Recorder& record, std::ostream& strm, bool bAscii, bool bHex)
+bool recordText(Source& source, std::ostream& strm, bool bAscii, bool bHex)
 {
-    record([&](const void* pData, size_t nBytes) -> bool
+    source([&](const void* pData, size_t nBytes) -> bool
     {
         if (bAscii && bHex)
         {
@@ -87,21 +89,21 @@ int main(int argc, char* argv[])
         std::cout << "Listening on " << options.sLocalIp << " " << options.sRemoteIp
                   << ":" << options.nPort << std::endl;
         Channel channel = { "Default", options.sRemoteIp, options.nPort };
-        Recorder recorder(options.sLocalIp, channel);
+        Source source(options.sLocalIp, channel);
         
         if (options.sFileName.size())
         {
             std::cout << "Writing to " << options.sFileName << std::endl;
             std::ofstream stream(options.sFileName, std::ofstream::binary);
-            recordRaw(recorder, stream);
+            recordRaw(source, stream);
         }
         else if (options.bOutFmtAscii || options.bOutFmtHex)
         {
-            recordText(recorder, std::cout, options.bOutFmtAscii, options.bOutFmtHex);
+            recordText(source, std::cout, options.bOutFmtAscii, options.bOutFmtHex);
         }
         else
         {
-            recordRaw(recorder, std::cout);
+            recordRaw(source, std::cout);
         }
     }
     catch (int n)
