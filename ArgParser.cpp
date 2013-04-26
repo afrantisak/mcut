@@ -73,7 +73,7 @@ void ArgParser::add_option(boost::program_options::options_description& desc, co
     }
 }
 
-void ArgParser::parse_args(int argc, char* argv[])
+void ArgParser::parse(int argc, char* argv[])
 {
     m_po_all.add_options()("help", "show this help message");
     m_po_visible.add_options()("help", "show this help message");

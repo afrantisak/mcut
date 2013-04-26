@@ -15,23 +15,25 @@ struct Options
     Ip sLocalIp;
     Ip sRemoteIp;
     Port nPort;
-    bool bOutputAscii;
-    bool bOutputHex;
+    bool bOutFmtAscii;
+    bool bOutFmtHex;
     FileName sFileName;
+    bool bOutFmtPacket;
 
     Options(int argc, char* argv[])
     {
         ArgParser args("recorder");
-        args.add_option("local-ip", sLocalIp, "local ip address");
-        args.add_option("remote-ip", sRemoteIp, "remote ip address");
-        args.add_option("remote-port", nPort, "remote port");
-        args.add_option("--output-ascii", bOutputAscii, "output character data");
-        args.add_option("--output-hex", bOutputHex, "output hex codes");
-        args.add_option("--output-file", sFileName, "output to file");
+        args.add("local-ip", sLocalIp, "local ip address");
+        args.add("remote-ip", sRemoteIp, "remote ip address");
+        args.add("remote-port", nPort, "remote port");
+        args.add("--outfmt-ascii", bOutFmtAscii, "output character data");
+        args.add("--outfmt-hex", bOutFmtHex, "output hex codes");
+        args.add("--outfmt-packet", bOutFmtPacket, "output wrapped packets");
+        args.add("--output-file", sFileName, "output to file");
         
         // TODO: load from a config file first
         // override options from the command line
-        args.parse_args(argc, argv);
+        args.parse(argc, argv);
     }
 };
 
@@ -78,7 +80,8 @@ bool recordRaw(Recorder& record, std::ostream& strm)
 
 struct PacketHeader
 {
-    typedef uint64_t Length;
+    typedef uint32_t Length;
+    typedef uint32_t Pad;
     typedef uint64_t Timestamp;
 
     PacketHeader(Length nLength)
@@ -151,15 +154,21 @@ int main(int argc, char* argv[])
         {
             std::cout << "Writing to " << options.sFileName << std::endl;
             std::ofstream stream(options.sFileName, std::ofstream::binary);
-            recordRaw(recorder, stream);
+            if (options.bOutFmtPacket)
+                recordPacket(recorder, stream);
+            else
+                recordRaw(recorder, stream);
         }
-        else if (options.bOutputAscii || options.bOutputHex)
+        else if (options.bOutFmtAscii || options.bOutFmtHex)
         {
-            recordText(recorder, std::cout, options.bOutputAscii, options.bOutputHex);
+            recordText(recorder, std::cout, options.bOutFmtAscii, options.bOutFmtHex);
         }
         else
         {
-            recordRaw(recorder, std::cout);
+            if (options.bOutFmtPacket)
+                recordPacket(recorder, std::cout);
+            else
+                recordRaw(recorder, std::cout);
         }
     }
     catch (int n)

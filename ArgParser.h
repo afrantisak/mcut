@@ -12,13 +12,13 @@ public:
     ArgParser(Name sDescription);
     
     template<typename T>
-    void add_option(Name sLong, T& value, Name sDescription)
+    void add(Name sLong, T& value, Name sDescription)
     {
         m_options.push_back(Option(sLong, "", &value, &typeid(T), sDescription));
     }
 
     // actually process the arguments and check for errors
-    void parse_args(int argc, char* argv[]);
+    void parse(int argc, char* argv[]);
     
     struct Option
     {
