@@ -18,6 +18,7 @@ public:
     }
 
     // actually process the arguments and check for errors
+    // TODO: load from a config file first then override options from the command line
     void parse(int argc, char* argv[]);
     
     struct Option

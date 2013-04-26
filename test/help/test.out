@@ -1,8 +1,7 @@
-Usage: recorder <local-ip> <remote-ip> <remote-port> [options]
+Usage: mc-echo <local-ip> <remote-ip> <remote-port> [options]
 Allowed options:
   --help                show this help message
   --outfmt-ascii        output character data
   --outfmt-hex          output hex codes
-  --outfmt-packet       output wrapped packets
   --output-file arg     output to file
 

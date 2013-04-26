@@ -7,12 +7,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 project(mcut)
 
 add_executable(mc-echo mc-echo.cpp receiver.cpp recorder.cpp ArgParser.cpp)
+add_executable(mc-wrap mc-wrap.cpp receiver.cpp recorder.cpp ArgParser.cpp)
 
 enable_testing()
 
 ADD_DEFINITIONS("-std=c++0x") 
 
 TARGET_LINK_LIBRARIES(mc-echo boost_system boost_program_options pthread rt)
+TARGET_LINK_LIBRARIES(mc-wrap boost_system boost_program_options pthread rt)
 
 macro(add_test_diff name file command)
   add_test(${name} python cmdiff.py ${file} ${command})
