@@ -1,4 +1,4 @@
-Usage: mc-echo <local-ip> <remote-ip> <remote-port> [options]
+Usage: mc-recv-raw <local-ip> <remote-ip> <remote-port> [options]
 Allowed options:
   --help                show this help message
   --outfmt-ascii        output character data

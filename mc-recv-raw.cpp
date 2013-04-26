@@ -19,15 +19,13 @@ struct Options
 
     Options(int argc, char* argv[])
     {
-        ArgParser args("mc-echo");
+        ArgParser args("mc-recv-raw");
         args.add("local-ip", sLocalIp, "local ip address");
         args.add("remote-ip", sRemoteIp, "remote ip address");
         args.add("remote-port", nPort, "remote port");
         args.add("--outfmt-ascii", bOutFmtAscii, "output character data");
         args.add("--outfmt-hex", bOutFmtHex, "output hex codes");
         args.add("--output-file", sFileName, "output to file");
-        
-        // TODO: load from a config file first then override options from the command line
         args.parse(argc, argv);
     }
 };

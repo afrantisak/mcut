@@ -6,20 +6,20 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 project(mcut)
 
-add_executable(mc-echo mc-echo.cpp receiver.cpp Source.cpp ArgParser.cpp)
-add_executable(mc-wrap mc-wrap.cpp receiver.cpp Source.cpp ArgParser.cpp)
+add_executable(mc-recv-raw mc-recv-raw.cpp receiver.cpp Source.cpp ArgParser.cpp)
+add_executable(mc-recv-pkt mc-recv-pkt.cpp receiver.cpp Source.cpp ArgParser.cpp)
 
 enable_testing()
 
 ADD_DEFINITIONS("-std=c++0x") 
 
-TARGET_LINK_LIBRARIES(mc-echo boost_system boost_program_options pthread rt)
-TARGET_LINK_LIBRARIES(mc-wrap boost_system boost_program_options pthread rt)
+TARGET_LINK_LIBRARIES(mc-recv-raw boost_system boost_program_options pthread rt)
+TARGET_LINK_LIBRARIES(mc-recv-pkt boost_system boost_program_options pthread rt)
 
 macro(add_test_diff name file command)
   add_test(${name} python cmdiff.py ${file} ${command})
 endmacro(add_test_diff)
 
-add_test(help bin/mc-echo --help)
-add_test_diff(help_message test/help/test.out "bin/mc-echo --help")
+add_test(help bin/mc-recv-raw --help)
+add_test_diff(help_message test/help/test.out "bin/mc-recv-raw --help")
 add_test_diff(mcast_stdout test/mcast_stdout/test.ref "python test/mcast_stdout/test.py")

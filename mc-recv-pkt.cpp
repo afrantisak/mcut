@@ -17,12 +17,11 @@ struct Options
 
     Options(int argc, char* argv[])
     {
-        ArgParser args("mc-wrap");
+        ArgParser args("mc-recv-pkt");
         args.add("local-ip", sLocalIp, "local ip address");
         args.add("remote-ip", sRemoteIp, "remote ip address");
         args.add("remote-port", nPort, "remote port");
         args.add("--output-file", sFileName, "output to file");
-        
         args.parse(argc, argv);
     }
 };

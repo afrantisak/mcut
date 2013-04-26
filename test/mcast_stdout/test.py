@@ -1,6 +1,6 @@
 import os, sys, subprocess, time
 
-proc = subprocess.Popen(["bin/mc-echo", "0.0.0.0", "224.1.1.1", "5000"])
+proc = subprocess.Popen(["bin/mc-recv-raw", "0.0.0.0", "224.1.1.1", "5000"])
 
 import socket
 address = ('224.1.1.1', 5000)
