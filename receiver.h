@@ -1,4 +1,6 @@
 #include <vector>
+#include <string>
+#include <functional>
 #include <boost/asio.hpp>
 
 struct Channel
