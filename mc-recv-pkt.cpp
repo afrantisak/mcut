@@ -14,6 +14,7 @@ struct Options
     Ip sRemoteIp;
     Port nPort;
     FileName sFileName;
+    bool bDebug;
 
     Options(int argc, char* argv[])
     {
@@ -22,6 +23,7 @@ struct Options
         args.add("remote-ip", sRemoteIp, "remote ip address");
         args.add("remote-port", nPort, "remote port");
         args.add("--output-file", sFileName, "output to file");
+        args.add("--debug", bDebug, "debug packet details");
         args.parse(argc, argv);
     }
 };
@@ -56,6 +58,26 @@ void recordPacket(Source& source, std::ostream& strm)
     });
 }
 
+void debugPacket(Source& source, std::ostream& strm)
+{
+    source([&](const void* pData, size_t nBytes) -> bool
+    {
+        PacketHeader hdr(nBytes);
+        strm << "Pkt(" << nBytes << "): ";
+
+        // TODO: dump header, too
+        const char* pChar = static_cast<const char*>(pData);
+        size_t nBytesLeft = nBytes;
+        while (nBytesLeft--)
+        {
+            strm << std::setw(2) << std::setfill('0') << std::hex << static_cast<int>(*pChar++) << " " << std::dec;
+        }
+        strm << std::endl;
+
+        return true;
+    });
+}
+
 int main(int argc, char* argv[])
 {
     try
@@ -67,6 +89,8 @@ int main(int argc, char* argv[])
         Channel channel = { "Default", options.sRemoteIp, options.nPort };
         Source source(options.sLocalIp, channel);
         
+        // TODO: need clean ctrl-c handler so file doesn't get corrupted
+        
         if (options.sFileName.size())
         {
             std::cout << "Writing to " << options.sFileName << std::endl;
@@ -75,7 +99,10 @@ int main(int argc, char* argv[])
         }
         else
         {
-            recordPacket(source, std::cout);
+            if (options.bDebug)
+                debugPacket(source, std::cout);
+            else
+                recordPacket(source, std::cout);
         }
     }
     catch (int n)

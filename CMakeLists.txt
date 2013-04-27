@@ -23,3 +23,10 @@ endmacro(add_test_diff)
 add_test(help bin/mc-recv-raw --help)
 add_test_diff(help_message test/help/test.out "bin/mc-recv-raw --help")
 add_test_diff(mcast_stdout test/mcast_stdout/test.ref "python test/mcast_stdout/test.py")
+
+
+#cmake_minimum_required(VERSION 2.8)
+#find_package(Boost COMPONENTS iostreams REQUIRED)
+# 
+#add_executable(memory-map main.cpp)
+#target_link_libraries(memory-map ${Boost_LIBRARIES})
