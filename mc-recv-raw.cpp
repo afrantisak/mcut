@@ -1,3 +1,4 @@
+#include "ConsoleInterrupt.h"
 #include "ArgParser.h"
 #include "Source.h"
 #include <iostream>
@@ -30,10 +31,15 @@ struct Options
     }
 };
 
+ConsoleInterrupt g_interrupt;
+
 bool recordRaw(mcut::Source& source, std::ostream& strm)
 {
     source([&](const void* pData, size_t nBytes) -> bool
     {
+        // check if we were interrupted
+        g_interrupt.triggerThrow();
+
         strm.write(static_cast<const char*>(pData), nBytes);
         strm.flush();
         return true;
@@ -44,6 +50,9 @@ bool recordText(mcut::Source& source, std::ostream& strm, bool bAscii, bool bHex
 {
     source([&](const void* pData, size_t nBytes) -> bool
     {
+        // check if we were interrupted
+        g_interrupt.triggerThrow();
+
         if (bAscii && bHex)
         {
             // TODO do something cool here
@@ -112,6 +121,10 @@ int main(int argc, char* argv[])
     catch (int n)
     {
         return n;
+    }
+    catch (ConsoleInterrupt::Interrupted e)
+    {
+        std::cout << "Interrupted!" << std::endl;
     }
     catch (std::exception& e)
     {

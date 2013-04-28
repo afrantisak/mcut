@@ -1,3 +1,4 @@
+#include "ConsoleInterrupt.h"
 #include "ArgParser.h"
 #include "Source.h"
 #include <iostream>
@@ -45,13 +46,19 @@ struct PacketHeader
     Timestamp m_nTimestamp;
 };
 
+ConsoleInterrupt g_interrupt;
+        
 void recordPacket(mcut::Source& source, std::ostream& strm)
 {
     source([&](const void* pData, size_t nBytes) -> bool
     {
+        // check if we were interrupted
+        g_interrupt.triggerThrow();
+
         PacketHeader hdr(nBytes);
         strm.write(reinterpret_cast<const char*>(&hdr), sizeof(hdr));
         strm.write(static_cast<const char*>(pData), nBytes);
+
         return true;
     });
 }
@@ -60,6 +67,9 @@ void debugPacket(mcut::Source& source, std::ostream& strm)
 {
     source([&](const void* pData, size_t nBytes) -> bool
     {
+        // check if we were interrupted
+        g_interrupt.triggerThrow();
+
         PacketHeader hdr(nBytes);
         strm << "Pkt(" << nBytes << "): ";
 
@@ -87,8 +97,6 @@ int main(int argc, char* argv[])
         mcut::Channel channel = { "Default", options.sRemoteIp, options.nPort };
         mcut::Source source(options.sLocalIp, channel);
         
-        // TODO: need clean ctrl-c handler so file doesn't get corrupted
-        
         if (options.sFileName.size())
         {
             std::cout << "Writing to " << options.sFileName << std::endl;
@@ -106,6 +114,10 @@ int main(int argc, char* argv[])
     catch (int n)
     {
         return n;
+    }
+    catch (ConsoleInterrupt::Interrupted e)
+    {
+        std::cout << "Interrupted!" << std::endl;
     }
     catch (std::exception& e)
     {

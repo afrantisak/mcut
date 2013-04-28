@@ -6,8 +6,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 project(mcut)
 
-add_executable(mc-recv-raw mc-recv-raw.cpp receiver.cpp Source.cpp ArgParser.cpp)
-add_executable(mc-recv-pkt mc-recv-pkt.cpp receiver.cpp Source.cpp ArgParser.cpp)
+add_executable(mc-recv-raw mc-recv-raw.cpp receiver.cpp Source.cpp ArgParser.cpp ConsoleInterrupt.cpp)
+add_executable(mc-recv-pkt mc-recv-pkt.cpp receiver.cpp Source.cpp ArgParser.cpp ConsoleInterrupt.cpp)
 
 enable_testing()
 
