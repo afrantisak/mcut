@@ -30,9 +30,7 @@ struct Options
     }
 };
 
-using namespace mcut;
-
-bool recordRaw(Source& source, std::ostream& strm)
+bool recordRaw(mcut::Source& source, std::ostream& strm)
 {
     source([&](const void* pData, size_t nBytes) -> bool
     {
@@ -42,7 +40,7 @@ bool recordRaw(Source& source, std::ostream& strm)
     });
 }
 
-bool recordText(Source& source, std::ostream& strm, bool bAscii, bool bHex)
+bool recordText(mcut::Source& source, std::ostream& strm, bool bAscii, bool bHex)
 {
     source([&](const void* pData, size_t nBytes) -> bool
     {
@@ -75,7 +73,7 @@ bool recordText(Source& source, std::ostream& strm, bool bAscii, bool bHex)
     });
 }
 
-void record(Source& source, std::ostream& stream, Options& options)
+void record(mcut::Source& source, std::ostream& stream, Options& options)
 {
     // determine how the output should be formatted
     if (options.bOutFmtAscii || options.bOutFmtHex)
@@ -96,8 +94,8 @@ int main(int argc, char* argv[])
         Options options(argc, argv);
         std::cout << "Listening on " << options.sLocalIp << " " << options.sRemoteIp
                   << ":" << options.nPort << std::endl;
-        Channel channel = { "Default", options.sRemoteIp, options.nPort };
-        Source source(options.sLocalIp, channel);
+        mcut::Channel channel = { "Default", options.sRemoteIp, options.nPort };
+        mcut::Source source(options.sLocalIp, channel);
         
         // determine if we should write to stdout or to a file
         if (options.sFileName.size())

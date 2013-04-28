@@ -45,9 +45,7 @@ struct PacketHeader
     Timestamp m_nTimestamp;
 };
 
-using namespace mcut;
-
-void recordPacket(Source& source, std::ostream& strm)
+void recordPacket(mcut::Source& source, std::ostream& strm)
 {
     source([&](const void* pData, size_t nBytes) -> bool
     {
@@ -58,7 +56,7 @@ void recordPacket(Source& source, std::ostream& strm)
     });
 }
 
-void debugPacket(Source& source, std::ostream& strm)
+void debugPacket(mcut::Source& source, std::ostream& strm)
 {
     source([&](const void* pData, size_t nBytes) -> bool
     {
@@ -86,8 +84,8 @@ int main(int argc, char* argv[])
         Options options(argc, argv);
         std::cout << "Listening on " << options.sLocalIp << " " << options.sRemoteIp
                   << ":" << options.nPort << std::endl;
-        Channel channel = { "Default", options.sRemoteIp, options.nPort };
-        Source source(options.sLocalIp, channel);
+        mcut::Channel channel = { "Default", options.sRemoteIp, options.nPort };
+        mcut::Source source(options.sLocalIp, channel);
         
         // TODO: need clean ctrl-c handler so file doesn't get corrupted
         
