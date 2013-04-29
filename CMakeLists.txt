@@ -6,8 +6,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 project(mcut)
 
-add_executable(mc-recv-raw mc-recv-raw.cpp receiver.cpp Source.cpp ArgParser.cpp ConsoleInterrupt.cpp)
-add_executable(mc-recv-pkt mc-recv-pkt.cpp receiver.cpp Source.cpp ArgParser.cpp ConsoleInterrupt.cpp)
+add_executable(mc-recv-raw mc-recv-raw.cpp receiver.cpp Source.cpp ArgParser.cpp ConsoleInterrupt.cpp Packet.cpp)
+add_executable(mc-recv-pkt mc-recv-pkt.cpp receiver.cpp Source.cpp ArgParser.cpp ConsoleInterrupt.cpp Packet.cpp)
+add_executable(largeFileWriteTest largeFileWriteTest.cpp ArgParser.cpp ConsoleInterrupt.cpp Packet.cpp)
 
 enable_testing()
 
@@ -15,6 +16,7 @@ ADD_DEFINITIONS("-std=c++0x")
 
 TARGET_LINK_LIBRARIES(mc-recv-raw boost_system boost_program_options pthread rt)
 TARGET_LINK_LIBRARIES(mc-recv-pkt boost_system boost_program_options pthread rt)
+TARGET_LINK_LIBRARIES(largeFileWriteTest boost_system boost_program_options pthread rt)
 
 macro(add_test_diff name file command)
   add_test(${name} python cmdiff.py ${file} ${command})

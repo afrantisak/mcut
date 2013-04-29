@@ -9,7 +9,7 @@ class ArgParser
 public:  
     typedef std::string Name;
     
-    ArgParser(Name sDescription);
+    ArgParser(Name sName, Name sDescription = Name());
     
     template<typename T>
     void add(Name sLong, T& value, Name sDescription)
@@ -46,12 +46,14 @@ private:
         
     void add_option(boost::program_options::options_description& desc, const Option& option, const Name& sName);
     
+    Name m_sName;
     Name m_sDescription;
     
     typedef std::vector<Option> Options;
     Options m_options;
     
     boost::program_options::options_description m_po_visible;
+    boost::program_options::options_description m_po_required;
     boost::program_options::options_description m_po_all;
     boost::program_options::positional_options_description m_po_positional;
     boost::program_options::variables_map m_po_map;

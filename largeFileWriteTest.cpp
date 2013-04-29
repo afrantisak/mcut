@@ -1,29 +1,19 @@
 #include "ConsoleInterrupt.h"
 #include "ArgParser.h"
 #include "Packet.h"
-#include "Source.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <string>
 
 struct Options
 {
-    typedef std::string Ip;
-    typedef short Port;
-    typedef std::string FileName;
-    
-    Ip sLocalIp;
-    Ip sRemoteIp;
-    Port nPort;
-    FileName sFileName;
+    std::string sFileName;
     bool bDebug;
 
     Options(int argc, char* argv[])
     {
         ArgParser args("mc-recv-pkt");
-        args.add("local-ip", sLocalIp, "local ip address");
-        args.add("remote-ip", sRemoteIp, "remote ip address");
-        args.add("remote-port", nPort, "remote port");
         args.add("--output-file", sFileName, "output to file");
         args.add("--debug", bDebug, "debug packet details");
         args.parse(argc, argv);
@@ -31,26 +21,48 @@ struct Options
 };
 
 ConsoleInterrupt g_interrupt;
+
+class Counter
+{
+public:
+    typedef std::function<bool(const void* pData, size_t nBytes)> SinkCallback;
+    typedef unsigned long long Num;
+
+    Counter(Num nCount) 
+    :   m_num(nCount)
+    {
+    }
+
+    bool operator()(SinkCallback sinkCallback)
+    {
+        for (Num num = 0; num < m_num; ++num)
+        {
+            sinkCallback(static_cast<const void*>(&num), sizeof(Num));
+        }
+        return true;
+    }
+
+private:
+    Num m_num;
+};
         
-void recordPackets(mcut::Source& source, std::ostream& strm)
+void recordPackets(Counter& source, std::ostream& strm)
 {
     source([&](const void* pData, size_t nBytes) -> bool
     {
         // check if we were interrupted
         g_interrupt.triggerThrow();
-
         Packet::writeRawBinary(strm, pData, nBytes);
         return true;
     });
 }
 
-void debugPackets(mcut::Source& source, std::ostream& strm)
+void debugPackets(Counter& source, std::ostream& strm)
 {
     source([&](const void* pData, size_t nBytes) -> bool
     {
         // check if we were interrupted
         g_interrupt.triggerThrow();
-
         Packet::writeDebugText(strm, pData, nBytes);
         return true;
     });
@@ -62,10 +74,7 @@ int main(int argc, char* argv[])
     {
         // get command line / config file options
         Options options(argc, argv);
-        std::cout << "Listening on " << options.sLocalIp << " " << options.sRemoteIp
-                  << ":" << options.nPort << std::endl;
-        mcut::Channel channel = { "Default", options.sRemoteIp, options.nPort };
-        mcut::Source source(options.sLocalIp, channel);
+        Counter source(65537);
         
         if (options.sFileName.size())
         {

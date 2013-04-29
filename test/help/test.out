@@ -1,4 +1,10 @@
 Usage: mc-recv-raw <local-ip> <remote-ip> <remote-port> [options]
+
+Required parameters:
+  --local-ip            local ip address
+  --remote-ip           remote ip address
+  --remote-port         remote port
+
 Allowed options:
   --help                show this help message
   --outfmt-ascii        output character data

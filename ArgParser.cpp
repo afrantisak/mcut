@@ -50,10 +50,12 @@ bool option_assign<bool>(const ArgParser::Option& option, const po::variable_val
     return false;
 }
 
-ArgParser::ArgParser(Name sDescription)
-:   m_sDescription(sDescription),
+ArgParser::ArgParser(Name sName, Name sDescription)
+:   m_sName(sName),
+    m_sDescription(sDescription),
     m_options(),
     m_po_visible("Allowed options"),
+    m_po_required("Required parameters"),
     m_po_all("All options"),
     m_po_positional(),
     m_po_map()
@@ -90,6 +92,7 @@ void ArgParser::parse(int argc, char* argv[])
         else
         {
             m_po_all.add_options()(option.m_sLong.c_str(), option.m_sDescription.c_str());    
+            m_po_required.add_options()(option.m_sLong.c_str(), option.m_sDescription.c_str());    
             m_po_positional.add(option.m_sLong.c_str(), 1);
         }
     }
@@ -98,7 +101,7 @@ void ArgParser::parse(int argc, char* argv[])
     po::notify(m_po_map);    
     
     if (m_po_map.count("help")) {
-        std::cout << "Usage: " << m_sDescription; 
+        std::cout << "Usage: " << m_sName; 
         for (auto option: m_options)
         {
             Name sName = getOptional(option.m_sLong);
@@ -112,6 +115,12 @@ void ArgParser::parse(int argc, char* argv[])
         }
         
         std::cout << " [options]" << std::endl;
+        if (m_sDescription.size())
+            std::cout << m_sDescription << std::endl;
+        std::cout << std::endl;
+
+        std::cout << m_po_required << std::endl;
+
         std::cout << m_po_visible << std::endl;
         throw 0;
     }
