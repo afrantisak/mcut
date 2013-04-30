@@ -5,17 +5,21 @@
 #include <fstream>
 #include <iomanip>
 #include <string>
+#include <boost/iostreams/device/mapped_file.hpp>
+#include <boost/iostreams/stream.hpp>
 
 struct Options
 {
     std::string sFileName;
     bool bDebug;
+    bool bMmap;
 
     Options(int argc, char* argv[])
     {
         ArgParser args("mc-recv-pkt");
         args.add("--output-file", sFileName, "output to file");
         args.add("--debug", bDebug, "debug packet details");
+        args.add("--mmap", bMmap, "use memory-mapped file");
         args.parse(argc, argv);
     }
 };
@@ -74,13 +78,32 @@ int main(int argc, char* argv[])
     {
         // get command line / config file options
         Options options(argc, argv);
-        Counter source(65537);
+        Counter source(10);
         
         if (options.sFileName.size())
         {
             std::cout << "Writing to " << options.sFileName << std::endl;
-            std::ofstream stream(options.sFileName, std::ofstream::binary);
-            recordPackets(source, stream);
+            if (options.bMmap)
+            {
+                std::cout << "Using MMAP" << std::endl;
+                namespace io = boost::iostreams;
+                io::mapped_file_params p;
+                p.path = options.sFileName;
+                p.flags = io::mapped_file_sink::priv;
+                p.offset = 0;
+                p.length = 1024;
+                p.new_file_size = 1024;
+                p.hint = 0;
+                io::mapped_file_sink file(p);
+                io::stream_buffer<io::mapped_file_sink> buf(file);
+                std::ostream out(&buf);
+                recordPackets(source, out);
+            }
+            else
+            {
+                std::ofstream stream(options.sFileName, std::ofstream::binary);
+                recordPackets(source, stream);
+            }
         }
         else
         {

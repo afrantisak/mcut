@@ -16,7 +16,7 @@ ADD_DEFINITIONS("-std=c++0x")
 
 TARGET_LINK_LIBRARIES(mc-recv-raw boost_system boost_program_options pthread rt)
 TARGET_LINK_LIBRARIES(mc-recv-pkt boost_system boost_program_options pthread rt)
-TARGET_LINK_LIBRARIES(largeFileWriteTest boost_system boost_program_options pthread rt)
+TARGET_LINK_LIBRARIES(largeFileWriteTest boost_system boost_program_options boost_iostreams pthread rt)
 
 macro(add_test_diff name file command)
   add_test(${name} python cmdiff.py ${file} ${command})
