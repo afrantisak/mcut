@@ -29,7 +29,7 @@ namespace Packet
         Timestamp m_nTimestamp;
     };
 
-    void writeRawBinary(std::ostream& strm, const void* pData, size_t nBytes);
-    void writeDebugText(std::ostream& strm, const void* pData, size_t nBytes);
+    size_t writeRawBinary(std::ostream& strm, const void* pData, size_t nBytes, bool bZeroTime = false);
+    size_t writeDebugText(std::ostream& strm, const void* pData, size_t nBytes, bool bZeroTime = false);
 
 };//namespace Packet

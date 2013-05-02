@@ -5,8 +5,10 @@
 #include <fstream>
 #include <iomanip>
 #include <string>
+#include <memory>
 #include <boost/iostreams/device/mapped_file.hpp>
 #include <boost/iostreams/stream.hpp>
+#include <boost/iostreams/concepts.hpp>
 
 struct Options
 {
@@ -50,26 +52,76 @@ private:
     Num m_num;
 };
         
-void recordPackets(Counter& source, std::ostream& strm)
+size_t recordPackets(Counter& source, std::ostream& strm, bool bZeroTime = false)
 {
+    size_t nBytesTotal = 0;
     source([&](const void* pData, size_t nBytes) -> bool
     {
         // check if we were interrupted
         g_interrupt.triggerThrow();
-        Packet::writeRawBinary(strm, pData, nBytes);
+        nBytesTotal += Packet::writeRawBinary(strm, pData, nBytes, bZeroTime);
         return true;
     });
+    return nBytesTotal;
 }
 
-void debugPackets(Counter& source, std::ostream& strm)
+size_t debugPackets(Counter& source, std::ostream& strm, bool bZeroTime = false)
 {
+    size_t nBytesTotal = 0;
     source([&](const void* pData, size_t nBytes) -> bool
     {
         // check if we were interrupted
         g_interrupt.triggerThrow();
-        Packet::writeDebugText(strm, pData, nBytes);
+        nBytesTotal += Packet::writeDebugText(strm, pData, nBytes, bZeroTime);
         return true;
     });
+    return nBytesTotal;
+}
+
+class BigSink : public boost::iostreams::sink
+{
+public:
+    BigSink(const std::string& sFileName, size_t nChunkSize);
+    ~BigSink();
+
+    std::streamsize write(const char_type* s, std::streamsize n);
+
+private:
+    std::string m_sFileName;
+    size_t m_nChunkSize;
+    size_t m_nBytesTotal;
+    void* m_pWrite;
+    
+    typedef boost::iostreams::mapped_file_params SinkParams;
+    typedef boost::iostreams::mapped_file_sink Sink;
+    std::shared_ptr<Sink> m_pSink;
+};
+
+BigSink::BigSink(const std::string& sFileName, size_t nChunkSize)
+    :   m_sFileName(sFileName),
+        m_nChunkSize(nChunkSize),
+        m_pSink(),
+        m_pWrite(0),
+        m_nBytesTotal(0)
+{
+    SinkParams p(m_sFileName.c_str());
+    p.new_file_size = m_nChunkSize;
+    p.length = -1;
+    m_pSink.reset(new Sink(p));
+    m_pWrite = m_pSink->data();
+}
+
+BigSink::~BigSink()
+{
+    m_pSink.reset();
+    if (m_nBytesTotal)
+        truncate(m_sFileName.c_str(), m_nBytesTotal);
+}
+
+std::streamsize BigSink::write(const char* s, std::streamsize n)
+{
+    memcpy(m_pWrite, s, n);
+    m_nBytesTotal += n;
 }
 
 int main(int argc, char* argv[])
@@ -86,23 +138,15 @@ int main(int argc, char* argv[])
             if (options.bMmap)
             {
                 std::cout << "Using MMAP" << std::endl;
-                namespace io = boost::iostreams;
-                io::mapped_file_params p;
-                p.path = options.sFileName;
-                p.flags = io::mapped_file_sink::priv;
-                p.offset = 0;
-                p.length = 1024;
-                p.new_file_size = 1024;
-                p.hint = 0;
-                io::mapped_file_sink file(p);
-                io::stream_buffer<io::mapped_file_sink> buf(file);
-                std::ostream out(&buf);
-                recordPackets(source, out);
+
+                BigSink sink(options.sFileName, 1024);
+                boost::iostreams::stream<BigSink> out(sink);
+                size_t nBytesTotal = recordPackets(source, out, true);                
             }
             else
             {
                 std::ofstream stream(options.sFileName, std::ofstream::binary);
-                recordPackets(source, stream);
+                recordPackets(source, stream, true);
             }
         }
         else
@@ -121,12 +165,12 @@ int main(int argc, char* argv[])
     {
         std::cout << "Interrupted!" << std::endl;
     }
-    catch (std::exception& e)
-    {
-        if (e.what())
-            std::cerr << "exception: " << e.what() << "\n";
-        return 127;
-    }
+//    catch (std::exception& e)
+//    {
+//        if (e.what())
+//            std::cerr << "exception: " << e.what() << "\n";
+//        return 127;
+//    }
 
     return 0;
 }
