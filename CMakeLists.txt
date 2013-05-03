@@ -15,7 +15,7 @@ add_executable(mc-recv-pkt mc-recv-pkt.cpp receiver.cpp Source.cpp ArgParser.cpp
 TARGET_LINK_LIBRARIES(mc-recv-pkt boost_system boost_program_options pthread rt)
 
 # largeFileWriteTest
-add_executable(largeFileWriteTest largeFileWriteTest.cpp ArgParser.cpp ConsoleInterrupt.cpp Packet.cpp)
+add_executable(largeFileWriteTest largeFileWriteTest.cpp ArgParser.cpp ConsoleInterrupt.cpp Packet.cpp BigSink.cpp)
 TARGET_LINK_LIBRARIES(largeFileWriteTest boost_system boost_program_options boost_iostreams pthread rt)
 
 # boostex

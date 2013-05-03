@@ -6,9 +6,8 @@
 #include <iomanip>
 #include <string>
 #include <memory>
-#include <boost/iostreams/device/mapped_file.hpp>
+#include "BigSink.h"
 #include <boost/iostreams/stream.hpp>
-#include <boost/iostreams/concepts.hpp>
 
 struct Options
 {
@@ -78,52 +77,6 @@ size_t debugPackets(Counter& source, std::ostream& strm, bool bZeroTime = false)
     return nBytesTotal;
 }
 
-class BigSink : public boost::iostreams::sink
-{
-public:
-    BigSink(const std::string& sFileName, size_t nChunkSize);
-    ~BigSink();
-
-    std::streamsize write(const char_type* s, std::streamsize n);
-
-private:
-    std::string m_sFileName;
-    size_t m_nChunkSize;
-    size_t m_nBytesTotal;
-    void* m_pWrite;
-    
-    typedef boost::iostreams::mapped_file_params SinkParams;
-    typedef boost::iostreams::mapped_file_sink Sink;
-    std::shared_ptr<Sink> m_pSink;
-};
-
-BigSink::BigSink(const std::string& sFileName, size_t nChunkSize)
-    :   m_sFileName(sFileName),
-        m_nChunkSize(nChunkSize),
-        m_pSink(),
-        m_pWrite(0),
-        m_nBytesTotal(0)
-{
-    SinkParams p(m_sFileName.c_str());
-    p.new_file_size = m_nChunkSize;
-    p.length = -1;
-    m_pSink.reset(new Sink(p));
-    m_pWrite = m_pSink->data();
-}
-
-BigSink::~BigSink()
-{
-    m_pSink.reset();
-    if (m_nBytesTotal)
-        truncate(m_sFileName.c_str(), m_nBytesTotal);
-}
-
-std::streamsize BigSink::write(const char* s, std::streamsize n)
-{
-    memcpy(m_pWrite, s, n);
-    m_nBytesTotal += n;
-}
-
 int main(int argc, char* argv[])
 {
     try
@@ -165,12 +118,12 @@ int main(int argc, char* argv[])
     {
         std::cout << "Interrupted!" << std::endl;
     }
-//    catch (std::exception& e)
-//    {
-//        if (e.what())
-//            std::cerr << "exception: " << e.what() << "\n";
-//        return 127;
-//    }
+    catch (std::exception& e)
+    {
+        if (e.what())
+            std::cerr << "exception: " << e.what() << "\n";
+        return 127;
+    }
 
     return 0;
 }
