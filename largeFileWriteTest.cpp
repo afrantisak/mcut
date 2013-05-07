@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
 
                 BigSink sink(options.sFileName, 1024);
                 boost::iostreams::stream<BigSink> out(sink);
-                size_t nBytesTotal = recordPackets(source, out, true);                
+                recordPackets(source, out, true);                
             }
             else
             {
