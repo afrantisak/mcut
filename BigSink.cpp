@@ -1,4 +1,7 @@
 #include "BigSink.h"
+#include <boost/iostreams/device/mapped_file.hpp>
+#include <thread>
+#include <atomic>
 
 namespace Private
 {
