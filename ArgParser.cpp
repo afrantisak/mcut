@@ -68,6 +68,7 @@ void ArgParser::add_option(boost::program_options::options_description& desc, co
     else if (option_add<std::string>(option, desc, sName)) {}
     else if (option_add<int>(option, desc, sName)) {}
     else if (option_add<short>(option, desc, sName)) {}
+    else if (option_add<unsigned int>(option, desc, sName)) {}
     else
     {
         std::cout << "ERROR: ArgParser unsupported type (" << option.m_pInfo->name() << ") conversion for option " << option.m_sLong << std::endl;
@@ -155,6 +156,7 @@ void ArgParser::parse(int argc, char* argv[])
         else if (option_assign<std::string>(option, value(sName))) {}
         else if (option_assign<int>(option, value(sName))) {}
         else if (option_assign<short>(option, value(sName))) {}
+        else if (option_assign<unsigned int>(option, value(sName))) {}
         else
         {
             std::cout << "ERROR: ArgParser unsupported type (" << option.m_pInfo->name() << ") conversion for option " << option.m_sLong << std::endl;

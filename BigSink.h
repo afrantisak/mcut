@@ -11,7 +11,7 @@ namespace Private
 class BigSink : public boost::iostreams::sink
 {
 public:
-    BigSink(const std::string& sFileName, size_t nChunkSize);
+    BigSink(std::string sFilename, std::string sExtension, size_t nChunkSize);
     ~BigSink();
 
     std::streamsize write(const char_type* s, std::streamsize n);

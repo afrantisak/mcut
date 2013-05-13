@@ -12,15 +12,21 @@
 struct Options
 {
     std::string sFileName;
+    std::string sFileExt;
     bool bDebug;
     bool bMmap;
+    size_t nCount;
 
     Options(int argc, char* argv[])
     {
+        sFileExt = "txt";
+        nCount = 10;
         ArgParser args("mc-recv-pkt");
-        args.add("--output-file", sFileName, "output to file");
+        args.add("--output-file", sFileName, "output file name");
+        args.add("--output-ext", sFileExt, "output file extension");
         args.add("--debug", bDebug, "debug packet details");
         args.add("--mmap", bMmap, "use memory-mapped file");
+        args.add("--count", nCount, "iterations");
         args.parse(argc, argv);
     }
 };
@@ -83,22 +89,24 @@ int main(int argc, char* argv[])
     {
         // get command line / config file options
         Options options(argc, argv);
-        Counter source(10);
+        Counter source(options.nCount);
         
         if (options.sFileName.size())
         {
-            std::cout << "Writing to " << options.sFileName << std::endl;
+            std::stringstream strm;
+            strm << options.sFileName << "." << options.sFileExt;
+            std::string sFileFull = strm.str();
+            std::cout << "Writing to " << sFileFull << std::endl;
             if (options.bMmap)
             {
                 std::cout << "Using MMAP" << std::endl;
-
-                BigSink sink(options.sFileName, 1024);
+                BigSink sink(options.sFileName, options.sFileExt, 1024);
                 boost::iostreams::stream<BigSink> out(sink);
                 recordPackets(source, out, true);                
             }
             else
             {
-                std::ofstream stream(options.sFileName, std::ofstream::binary);
+                std::ofstream stream(sFileFull, std::ofstream::binary);
                 recordPackets(source, stream, true);
             }
         }
