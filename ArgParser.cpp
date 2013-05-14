@@ -31,7 +31,7 @@ bool option_assign(const ArgParser::Option& option, const po::variable_value& va
     {
         if (!value.empty())
         {
-            *reinterpret_cast<T*>(option.m_pValue) = boost::lexical_cast<T>(value.as<std::string>());
+            *reinterpret_cast<T*>(option.m_pValue) = value.as<T>();
         }
         return true;
     }
