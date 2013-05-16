@@ -15,7 +15,7 @@ namespace Private
         std::streamsize write(const char_type* s, std::streamsize n);
 
     private:
-        std::string getFilename();
+        std::string getFilename(size_t nChunk);
         
         void threadFetch();
 
@@ -68,6 +68,7 @@ Private::BigSinkImpl::BigSinkImpl(std::string sFilename, std::string sExtension,
         m_nBytesTotal(0),
         m_nBytesChunk(0),
         m_nChunks(0),
+        m_bRequestFetch(false),
         m_fileCur(),
         m_fileNew(),
         m_fileOld()
@@ -75,11 +76,14 @@ Private::BigSinkImpl::BigSinkImpl(std::string sFilename, std::string sExtension,
     m_bStop = false;
     m_threadFetch = std::thread(&BigSinkImpl::threadFetch, this);
 
-    FileParams p(getFilename());
+    FileParams p(getFilename(m_nChunks));
     p.new_file_size = m_nChunkSize;
     p.length = -1;
     m_fileCur = File(p);
     m_pWriteCur = m_fileCur.data();
+    
+    // request the next chunk now
+    m_bRequestFetch = true;
 }
 
 Private::BigSinkImpl::~BigSinkImpl()
@@ -88,7 +92,8 @@ Private::BigSinkImpl::~BigSinkImpl()
     {
         m_bStop = true;
         m_threadFetch.join();
-        truncate(getFilename().c_str(), m_nBytesChunk);
+        std::cout << "truncating " << getFilename(m_nChunks - 2) << " to " << m_nBytesChunk << " bytes." << std::endl;
+        truncate(getFilename(m_nChunks - 2).c_str(), m_nBytesChunk);
     }
 }
 
@@ -112,6 +117,7 @@ std::streamsize Private::BigSinkImpl::write(const char* s, std::streamsize n)
         m_nBytesChunk = n - nBytesFirst;
         m_pWriteOld = m_pWriteCur;
         m_pWriteCur = m_pWriteNew;
+        m_nChunks++;
 
         // Request new chunk so it is hopefully ready by the time we finish this one
         m_bRequestFetch = true;
@@ -124,7 +130,7 @@ std::streamsize Private::BigSinkImpl::write(const char* s, std::streamsize n)
     m_nBytesTotal += n;
 }
 
-std::string Private::BigSinkImpl::getFilename()
+std::string Private::BigSinkImpl::getFilename(size_t nChunk)
 {
     std::stringstream strm;
     strm << m_sFilename << "." << m_nChunks << "." << m_sExtension;
@@ -140,13 +146,13 @@ void Private::BigSinkImpl::threadFetch()
             // spin while waiting for main thread to request a new buffer
             continue;
         }    
-
+        
         // a new buffer was requested; fetch it
-        FileParams p(getFilename());
+        FileParams p(getFilename(m_nChunks));
         p.new_file_size = m_nChunkSize;
         p.length = -1;
         m_fileNew = File(p);
-        m_nChunks++;
+        m_pWriteNew = m_fileNew.data();
 
         // reset the request flag to indicate it is ready
         m_bRequestFetch = false;
