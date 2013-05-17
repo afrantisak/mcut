@@ -18,6 +18,8 @@ namespace Private
         std::string getFilename(size_t nChunk);
         
         void threadFetch();
+        
+        void switchChunks();
 
         std::string m_sFilename;
         std::string m_sExtension;
@@ -25,9 +27,9 @@ namespace Private
         size_t m_nBytesTotal;
         size_t m_nBytesChunk;
         size_t m_nChunks;
-        void* m_pWriteCur;
-        void* m_pWriteNew;
-        void* m_pWriteOld;
+        char* m_pWriteCur;
+        char* m_pWriteNew;
+        char* m_pWriteOld;
 
         typedef boost::iostreams::mapped_file_params FileParams;
         typedef boost::iostreams::mapped_file_sink File;

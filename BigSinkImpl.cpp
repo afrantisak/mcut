@@ -19,12 +19,15 @@ Private::BigSinkImpl::BigSinkImpl(std::string sFilename, std::string sExtension,
     m_bStop = false;
     m_threadFetch = std::thread(&BigSinkImpl::threadFetch, this);
 
-    FileParams p(getFilename(m_nChunks));
-    p.new_file_size = m_nChunkSize;
-    p.length = -1;
-    m_fileCur = File(p);
-    m_pWriteCur = m_fileCur.data();
+    // request the first chunk
+    m_bRequestFetch = true;
+
+    // wait for it
+    while (m_bRequestFetch);
     
+    // pointer bookkeeping
+    switchChunks();
+
     // request the next chunk now
     m_bRequestFetch = true;
 }
@@ -35,8 +38,16 @@ Private::BigSinkImpl::~BigSinkImpl()
     {
         m_bStop = true;
         m_threadFetch.join();
-        std::cout << "truncating " << getFilename(m_nChunks - 2) << " to " << m_nBytesChunk << " bytes." << std::endl;
-        truncate(getFilename(m_nChunks - 2).c_str(), m_nBytesChunk);
+        
+        m_fileOld.close();
+        m_fileCur.close();
+        m_fileNew.close();
+
+        // shrink the current file down 
+        truncate(getFilename(m_nChunks - 1).c_str(), m_nBytesChunk);
+        
+        // delete the new file we had queued up
+        unlink(getFilename(m_nChunks).c_str());
     }
 }
 
@@ -47,8 +58,8 @@ std::streamsize Private::BigSinkImpl::write(const char* s, std::streamsize n)
     {
         size_t nBytesFirst = m_nChunkSize - m_nBytesChunk;
         
-        // copy as much as we can in the old buffer
-        memcpy(m_pWriteCur, s, nBytesFirst);
+        // copy as much as we can into the old buffer
+        memcpy(m_pWriteCur + m_nBytesChunk, s, nBytesFirst);
         
         // Wait for next chunk to be available; hopefully won't wait long if at all.
         // If it turns out that we spend time in this spinlock, 
@@ -58,25 +69,33 @@ std::streamsize Private::BigSinkImpl::write(const char* s, std::streamsize n)
         // copy the rest into the new buffer
         memcpy(m_pWriteNew, s + nBytesFirst, n - nBytesFirst);
         m_nBytesChunk = n - nBytesFirst;
-        m_pWriteOld = m_pWriteCur;
-        m_pWriteCur = m_pWriteNew;
-        m_nChunks++;
-
+        
+        switchChunks();
+        
         // Request new chunk so it is hopefully ready by the time we finish this one
         m_bRequestFetch = true;
     }
     else
     {
-        memcpy(m_pWriteCur, s, n);
+        memcpy(m_pWriteCur + m_nBytesChunk, s, n);
         m_nBytesChunk += n;
     }
     m_nBytesTotal += n;
 }
 
+void Private::BigSinkImpl::switchChunks()
+{
+    std::swap(m_pWriteOld, m_pWriteCur);
+    std::swap(m_pWriteCur, m_pWriteNew);
+    std::swap(m_fileOld, m_fileCur);
+    std::swap(m_fileCur, m_fileNew);
+    m_nChunks++;
+}
+
 std::string Private::BigSinkImpl::getFilename(size_t nChunk)
 {
     std::stringstream strm;
-    strm << m_sFilename << "." << m_nChunks << "." << m_sExtension;
+    strm << m_sFilename << "." << nChunk << "." << m_sExtension;
     return strm.str();
 }
 
@@ -97,10 +116,11 @@ void Private::BigSinkImpl::threadFetch()
         m_fileNew = File(p);
         m_pWriteNew = m_fileNew.data();
 
-        // reset the request flag to indicate it is ready
-        m_bRequestFetch = false;
-        
         // free the old buffer
         m_fileOld.close();
+
+        // reset the request flag to indicate it is ready
+        m_bRequestFetch = false;
     }
 }
+
