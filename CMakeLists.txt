@@ -8,7 +8,7 @@ project(mcut)
 
 # mc-recv-raw
 add_executable(mc-recv-raw mc-recv-raw.cpp receiver.cpp Source.cpp ArgParser.cpp ConsoleInterrupt.cpp Packet.cpp)
-TARGET_LINK_LIBRARIES(mc-recv-raw boost_system boost_program_options pthread rt)
+TARGET_LINK_LIBRARIES(mc-recv-raw boost_system boost_program_options boost_iostreams pthread rt)
 
 # mc-recv-pkt
 add_executable(mc-recv-pkt mc-recv-pkt.cpp receiver.cpp Source.cpp ArgParser.cpp ConsoleInterrupt.cpp Packet.cpp)

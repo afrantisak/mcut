@@ -15,7 +15,8 @@ struct Options
     std::string sFileExt;
     bool bDebug;
     bool bMmap;
-    size_t nCount;
+    typedef size_t Count;
+    Count nCount;
 
     Options(int argc, char* argv[])
     {

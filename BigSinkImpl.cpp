@@ -17,7 +17,7 @@ Private::BigSinkImpl::BigSinkImpl(std::string sFilename, std::string sExtension,
         m_fileOld()
 {
     m_bStop = false;
-    m_threadFetch = std::thread(&BigSinkImpl::threadFetch, this);
+    m_threadFetch = std::thread(&BigSinkImpl::fetcherThread, this);
 
     // request the first chunk
     m_bRequestFetch = true;
@@ -26,7 +26,7 @@ Private::BigSinkImpl::BigSinkImpl(std::string sFilename, std::string sExtension,
     while (m_bRequestFetch);
     
     // pointer bookkeeping
-    switchChunks();
+    swapChunks();
 
     // request the next chunk now
     m_bRequestFetch = true;
@@ -70,7 +70,7 @@ std::streamsize Private::BigSinkImpl::write(const char* s, std::streamsize n)
         memcpy(m_pWriteNew, s + nBytesFirst, n - nBytesFirst);
         m_nBytesChunk = n - nBytesFirst;
         
-        switchChunks();
+        swapChunks();
         
         // Request new chunk so it is hopefully ready by the time we finish this one
         m_bRequestFetch = true;
@@ -83,7 +83,7 @@ std::streamsize Private::BigSinkImpl::write(const char* s, std::streamsize n)
     m_nBytesTotal += n;
 }
 
-void Private::BigSinkImpl::switchChunks()
+void Private::BigSinkImpl::swapChunks()
 {
     std::swap(m_pWriteOld, m_pWriteCur);
     std::swap(m_pWriteCur, m_pWriteNew);
@@ -99,7 +99,7 @@ std::string Private::BigSinkImpl::getFilename(size_t nChunk)
     return strm.str();
 }
 
-void Private::BigSinkImpl::threadFetch()
+void Private::BigSinkImpl::fetcherThread()
 {
     while (!m_bStop)
     {

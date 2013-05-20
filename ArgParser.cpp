@@ -32,6 +32,7 @@ bool option_assign(const ArgParser::Option& option, const po::variable_value& va
         if (!value.empty())
         {
             *reinterpret_cast<T*>(option.m_pValue) = value.as<T>();
+//            *reinterpret_cast<T*>(option.m_pValue) = boost::lexical_cast<T>(value.as<std::string>());
         }
         return true;
     }
@@ -44,7 +45,10 @@ bool option_assign<bool>(const ArgParser::Option& option, const po::variable_val
     if (*option.m_pInfo == typeid(bool))
     {
         if (!value.empty())
+        {
             *reinterpret_cast<bool*>(option.m_pValue) = boost::lexical_cast<bool>(value.as<std::string>());
+//            *reinterpret_cast<bool*>(option.m_pValue) = value.as<bool>();
+        }
         return true;
     }
     return false;
@@ -147,19 +151,31 @@ void ArgParser::parse(int argc, char* argv[])
     for (auto option: m_options)
     {
         Name sName = getOptional(option.m_sLong);
-        if (sName.size() == 0)
-            sName = option.m_sLong;
-        if (*option.m_pInfo == typeid(bool))
+        try
         {
-            *reinterpret_cast<bool*>(option.m_pValue) = m_po_map.count(sName.c_str()) ? true : false;
+            if (sName.size() == 0)
+                sName = option.m_sLong;
+            if (*option.m_pInfo == typeid(bool))
+            {
+                *reinterpret_cast<bool*>(option.m_pValue) = m_po_map.count(sName.c_str()) ? true : false;
+            }
+            else if (option_assign<std::string>(option, value(sName))) {}
+            else if (option_assign<int>(option, value(sName))) {}
+            else if (option_assign<short>(option, value(sName))) {}
+            else if (option_assign<unsigned int>(option, value(sName))) {}
+            else
+            {
+                std::cout << "ERROR: ArgParser unsupported type (" << option.m_pInfo->name() << ") ";
+                std::cout << "conversion for option \"" << option.m_sLong << "\"" << std::endl;
+                throw 1;
+            }
         }
-        else if (option_assign<std::string>(option, value(sName))) {}
-        else if (option_assign<int>(option, value(sName))) {}
-        else if (option_assign<short>(option, value(sName))) {}
-        else if (option_assign<unsigned int>(option, value(sName))) {}
-        else
+        catch (boost::bad_any_cast)
         {
-            std::cout << "ERROR: ArgParser unsupported type (" << option.m_pInfo->name() << ") conversion for option " << option.m_sLong << std::endl;
+            std::cout << "ERROR: ArgParser failed conversion ";
+            std::cout << "from value \"" << value(sName).as<std::string>() << "\" ";
+            std::cout << "to type \"" << option.m_pInfo->name() << "\" ";
+            std::cout << "for option \"" << option.m_sLong << "\"" << std::endl;
             throw 1;
         }
     }

@@ -11,7 +11,7 @@ namespace mcut
     {
         typedef std::string Name;
         typedef std::string Ip;
-        typedef unsigned short Port;
+        typedef size_t Port;
         
         Name name;
         Ip ip;
@@ -23,7 +23,7 @@ namespace mcut
     public:
         typedef boost::asio::io_service Service;
         typedef boost::asio::ip::address Address;
-        typedef unsigned short Port;
+        typedef size_t Port;
         typedef std::function<bool(const void*, size_t)> Callback;
         
         Receiver(Service& io_service, const Address& local_address, 

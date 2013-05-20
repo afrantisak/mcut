@@ -8,7 +8,7 @@
 struct Options
 {
     typedef std::string Ip;
-    typedef short Port;
+    typedef std::string Port;
     typedef std::string FileName;
     
     Ip sLocalIp;
@@ -40,6 +40,8 @@ bool recordRaw(mcut::Source& source, std::ostream& strm)
         // check if we were interrupted
         g_interrupt.triggerThrow();
 
+        std::cout<< "YAHOO" << std::endl;
+        
         strm.write(static_cast<const char*>(pData), nBytes);
         strm.flush();
         return true;
@@ -52,6 +54,7 @@ bool recordText(mcut::Source& source, std::ostream& strm, bool bAscii, bool bHex
     {
         // check if we were interrupted
         g_interrupt.triggerThrow();
+        std::cout<< "YEAH" << std::endl;
 
         if (bAscii && bHex)
         {
@@ -103,7 +106,8 @@ int main(int argc, char* argv[])
         Options options(argc, argv);
         std::cout << "Listening on " << options.sLocalIp << " " << options.sRemoteIp
                   << ":" << options.nPort << std::endl;
-        mcut::Channel channel = { "Default", options.sRemoteIp, options.nPort };
+//        mcut::Channel channel = { "Default", options.sRemoteIp, options.nPort };
+        mcut::Channel channel = { "Default", options.sRemoteIp, 5000 };
         mcut::Source source(options.sLocalIp, channel);
         
         // determine if we should write to stdout or to a file

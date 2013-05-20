@@ -17,9 +17,9 @@ namespace Private
     private:
         std::string getFilename(size_t nChunk);
         
-        void threadFetch();
+        void fetcherThread();
         
-        void switchChunks();
+        void swapChunks();
 
         std::string m_sFilename;
         std::string m_sExtension;
