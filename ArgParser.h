@@ -9,10 +9,11 @@ class ArgParser
 public:  
     typedef std::string Name;
     
+    // TODO: use command-line arg[0] for default name
     ArgParser(Name sName, Name sDescription = Name());
     
     template<typename T>
-    void add(Name sLong, T& value, Name sDescription)
+    void add(Name sLong, T& value, Name sDescription = std::string())
     {
         m_options.push_back(Option(sLong, "", &value, &typeid(T), sDescription));
     }

@@ -18,6 +18,10 @@ TARGET_LINK_LIBRARIES(mc-recv-pkt boost_system boost_program_options pthread rt)
 add_executable(largeFileWriteTest largeFileWriteTest.cpp ArgParser.cpp ConsoleInterrupt.cpp Packet.cpp BigSink.cpp BigSinkImpl.cpp)
 TARGET_LINK_LIBRARIES(largeFileWriteTest boost_system boost_program_options boost_iostreams pthread rt)
 
+# ArgParserTest
+add_executable(ArgParserTest ArgParserTest.cpp ArgParser.cpp )
+TARGET_LINK_LIBRARIES(ArgParserTest boost_system boost_program_options)
+
 # boostex
 #add_executable(boostex boostex.cpp)
 #TARGET_LINK_LIBRARIES(boostex boost_iostreams)
