@@ -17,6 +17,23 @@ public:
     {
         m_options.push_back(Option(sLong, "", &value, &typeid(T), sDescription));
     }
+    
+    struct Type
+    {
+        typedef bool               B;
+        typedef char               C;
+        typedef unsigned char      UC;
+        typedef short              S;
+        typedef unsigned short     US;
+        typedef int                N;
+        typedef unsigned int       UN;
+        typedef long               L;
+        typedef unsigned long      UL;
+        typedef long long          LL;
+        typedef unsigned long long ULL;
+        typedef size_t             Size;
+        typedef std::string        Str;
+    };
 
     // actually process the arguments and check for errors
     // TODO: load from a config file first then override options from the command line
@@ -45,7 +62,9 @@ private:
     // return the empty string.
     Name getOptional(const Name& sLong);
         
-    void add_option(boost::program_options::options_description& desc, const Option& option, const Name& sName);
+    void option_add(boost::program_options::options_description& desc, const Option& option, Name sName);
+    
+    void option_convert(const Option& option, Name sName);
     
     Name m_sName;
     Name m_sDescription;

@@ -3,7 +3,7 @@
 namespace po = boost::program_options;
 
 template<typename T>
-bool option_add(const ArgParser::Option& option, po::options_description& desc, const std::string& sName)
+bool option_add_impl(const ArgParser::Option& option, po::options_description& desc, const std::string& sName)
 {
     if (*option.m_pInfo == typeid(T))
     {
@@ -14,7 +14,7 @@ bool option_add(const ArgParser::Option& option, po::options_description& desc, 
 }
 
 template<>
-bool option_add<bool>(const ArgParser::Option& option, po::options_description& desc, const std::string& sName)
+bool option_add_impl<bool>(const ArgParser::Option& option, po::options_description& desc, const std::string& sName)
 {
     if (*option.m_pInfo == typeid(bool))
     {
@@ -25,14 +25,13 @@ bool option_add<bool>(const ArgParser::Option& option, po::options_description& 
 }
 
 template<typename T>
-bool option_assign(const ArgParser::Option& option, const po::variable_value& value)
+bool option_convert_impl(const ArgParser::Option& option, const po::variable_value& value)
 {
     if (*option.m_pInfo == typeid(T))
     {
         if (!value.empty())
         {
             *reinterpret_cast<T*>(option.m_pValue) = value.as<T>();
-//            *reinterpret_cast<T*>(option.m_pValue) = boost::lexical_cast<T>(value.as<std::string>());
         }
         return true;
     }
@@ -40,14 +39,13 @@ bool option_assign(const ArgParser::Option& option, const po::variable_value& va
 }
 
 template<>
-bool option_assign<bool>(const ArgParser::Option& option, const po::variable_value& value)
+bool option_convert_impl<bool>(const ArgParser::Option& option, const po::variable_value& value)
 {
     if (*option.m_pInfo == typeid(bool))
     {
         if (!value.empty())
         {
             *reinterpret_cast<bool*>(option.m_pValue) = boost::lexical_cast<bool>(value.as<std::string>());
-//            *reinterpret_cast<bool*>(option.m_pValue) = value.as<bool>();
         }
         return true;
     }
@@ -66,16 +64,50 @@ ArgParser::ArgParser(Name sName, Name sDescription)
 {
 }
 
-void ArgParser::add_option(boost::program_options::options_description& desc, const Option& option, const Name& sName)
+void ArgParser::option_add(boost::program_options::options_description& desc, const Option& option, Name sName)
 {
-    if (option_add<bool>(option, desc, sName)) {}
-    else if (option_add<std::string>(option, desc, sName)) {}
-    else if (option_add<int>(option, desc, sName)) {}
-    else if (option_add<short>(option, desc, sName)) {}
-    else if (option_add<unsigned int>(option, desc, sName)) {}
+         if (option_add_impl<Type::B>   (option, desc, sName)) {}
+    else if (option_add_impl<Type::C>   (option, desc, sName)) {}
+    else if (option_add_impl<Type::UC>  (option, desc, sName)) {}
+    else if (option_add_impl<Type::S>   (option, desc, sName)) {}
+    else if (option_add_impl<Type::US>  (option, desc, sName)) {}
+    else if (option_add_impl<Type::N>   (option, desc, sName)) {}
+    else if (option_add_impl<Type::UN>  (option, desc, sName)) {}
+    else if (option_add_impl<Type::L>   (option, desc, sName)) {}
+    else if (option_add_impl<Type::UL>  (option, desc, sName)) {}
+    else if (option_add_impl<Type::LL>  (option, desc, sName)) {}
+    else if (option_add_impl<Type::ULL> (option, desc, sName)) {}
+    else if (option_add_impl<Type::Size>(option, desc, sName)) {}
+    else if (option_add_impl<Type::Str> (option, desc, sName)) {}
     else
     {
-        std::cout << "ERROR: ArgParser unsupported type (" << option.m_pInfo->name() << ") conversion for option " << option.m_sLong << std::endl;
+        std::cout << "ERROR: ArgParser unsupported type ";
+        std::cout << "(" << option.m_pInfo->name() << ") ";
+        std::cout << "for option \"" << option.m_sLong << "\"" << std::endl;
+        throw 1;
+    }
+}
+
+void ArgParser::option_convert(const Option& option, std::string sName)
+{
+         if (option_convert_impl<Type::B>   (option, value(sName))) {}
+    else if (option_convert_impl<Type::C>   (option, value(sName))) {}
+    else if (option_convert_impl<Type::UC>  (option, value(sName))) {}
+    else if (option_convert_impl<Type::S>   (option, value(sName))) {}
+    else if (option_convert_impl<Type::US>  (option, value(sName))) {}
+    else if (option_convert_impl<Type::N>   (option, value(sName))) {}
+    else if (option_convert_impl<Type::UN>  (option, value(sName))) {}
+    else if (option_convert_impl<Type::L>   (option, value(sName))) {}
+    else if (option_convert_impl<Type::UL>  (option, value(sName))) {}
+    else if (option_convert_impl<Type::LL>  (option, value(sName))) {}
+    else if (option_convert_impl<Type::ULL> (option, value(sName))) {}
+    else if (option_convert_impl<Type::Size>(option, value(sName))) {}
+    else if (option_convert_impl<Type::Str> (option, value(sName))) {}
+    else
+    {
+        std::cout << "ERROR: ArgParser unsupported conversion ";
+        std::cout << "(" << option.m_pInfo->name() << ") ";
+        std::cout << "for option \"" << option.m_sLong << "\"" << std::endl;
         throw 1;
     }
 }
@@ -91,8 +123,8 @@ void ArgParser::parse(int argc, char* argv[])
         Name sName = getOptional(option.m_sLong);
         if (sName.size())
         {
-            add_option(m_po_all, option, sName);
-            add_option(m_po_visible, option, sName);
+            option_add(m_po_all, option, sName);
+            option_add(m_po_visible, option, sName);
         }
         else
         {
@@ -155,20 +187,7 @@ void ArgParser::parse(int argc, char* argv[])
         {
             if (sName.size() == 0)
                 sName = option.m_sLong;
-            if (*option.m_pInfo == typeid(bool))
-            {
-                *reinterpret_cast<bool*>(option.m_pValue) = m_po_map.count(sName.c_str()) ? true : false;
-            }
-            else if (option_assign<std::string>(option, value(sName))) {}
-            else if (option_assign<int>(option, value(sName))) {}
-            else if (option_assign<short>(option, value(sName))) {}
-            else if (option_assign<unsigned int>(option, value(sName))) {}
-            else
-            {
-                std::cout << "ERROR: ArgParser unsupported type (" << option.m_pInfo->name() << ") ";
-                std::cout << "conversion for option \"" << option.m_sLong << "\"" << std::endl;
-                throw 1;
-            }
+            option_convert(option, sName);
         }
         catch (boost::bad_any_cast)
         {
