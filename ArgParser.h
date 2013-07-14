@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 #include <typeinfo>
-#include <boost/lexical_cast.hpp>
 #include <boost/program_options.hpp>
 
 class ArgParser
@@ -9,65 +8,56 @@ class ArgParser
 public:  
     typedef std::string Name;
     
-    // TODO: use command-line arg[0] for default name
-    ArgParser(Name sName, Name sDescription = Name());
+    // TODO: use command-line arg[0] for default name?
+    ArgParser(Name name, Name description = Name());
     
     template<typename T>
-    void add(Name sLong, T& value, Name sDescription = std::string())
+    void add(Name name, T& value, Name desc = Name())
     {
-        m_options.push_back(Option(sLong, "", &value, &typeid(T), sDescription));
+        m_options.push_back(Option(name, "", &value, &typeid(T), desc));
     }
-    
-    struct Type
-    {
-        typedef bool               B;
-        typedef char               C;
-        typedef unsigned char      UC;
-        typedef short              S;
-        typedef unsigned short     US;
-        typedef int                N;
-        typedef unsigned int       UN;
-        typedef long               L;
-        typedef unsigned long      UL;
-        typedef long long          LL;
-        typedef unsigned long long ULL;
-        typedef size_t             Size;
-        typedef std::string        Str;
-    };
 
-    // actually process the arguments and check for errors
-    // TODO: load from a config file first then override options from the command line
+    // process the arguments and check for errors
     void parse(int argc, char* argv[]);
-    
-    struct Option
-    {
-        Option(Name sLong, Name sShort, void* pValue, const std::type_info* pInfo, Name sDescription)
-        :   m_sLong(sLong), m_sShort(sShort), m_pValue(pValue), m_pInfo(pInfo), m_sDescription(sDescription)
-        {
-        }
-        
-        Name m_sLong;
-        Name m_sShort;
-        void* m_pValue;
-        const std::type_info* m_pInfo;
-        Name m_sDescription;
-    };
     
 private:
 
-    const boost::program_options::variable_value& value(const Name& sName) const;
+    // TODO: pImpl this to completely hide boost::program_options from the header file
+
+    struct Option
+    {
+        Option(Name name, Name abbrev, void* valuePtr, const std::type_info* infoPtr, Name desc)
+        :   m_name(name), m_abbrev(abbrev), m_valuePtr(valuePtr), m_infoPtr(infoPtr), m_desc(desc)
+        {
+        }
+        
+        Name m_name;
+        Name m_abbrev;
+        void* m_valuePtr;
+        const std::type_info* m_infoPtr;
+        Name m_desc;
+    };
+    
+    template<typename T>
+    friend bool optionAddImpl(const ArgParser::Option& option, 
+                              boost::program_options::options_description& desc, const Name& name);
+        
+    template<typename T>
+    friend bool optionConvertImpl(const ArgParser::Option& option, 
+                                  const boost::program_options::variable_value& value);
+
+    const boost::program_options::variable_value& value(const Name& name) const;
     
     // if this is an optional argument (i.e. the name begins with "-" or "--")
-    // then return the name WITHOUT the dashes.  If it is NOT an optional argument,
-    // return the empty string.
-    Name getOptional(const Name& sLong);
+    // then return the name WITHOUT the dashes.  If it is a required argument, return empty string.
+    Name getOptional(const Name& name);
         
-    void option_add(boost::program_options::options_description& desc, const Option& option, Name sName);
+    void optionAdd(boost::program_options::options_description& desc, const Option& option, Name name);
     
-    void option_convert(const Option& option, Name sName);
+    void optionConvert(const Option& option, Name name);
     
-    Name m_sName;
-    Name m_sDescription;
+    Name m_name;
+    Name m_desc;
     
     typedef std::vector<Option> Options;
     Options m_options;
@@ -79,3 +69,24 @@ private:
     boost::program_options::variables_map m_po_map;
 };
 
+/*
+Copyright (c) 2013 Aaron Frantisak
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/

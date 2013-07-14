@@ -3,24 +3,42 @@
 #include <iomanip>
 #include <string>
 
+// shortcuts
+struct ArgParserType
+{
+    typedef bool               B;
+    typedef char               C;
+    typedef unsigned char      UC;
+    typedef short              S;
+    typedef unsigned short     US;
+    typedef int                N;
+    typedef unsigned int       UN;
+    typedef long               L;
+    typedef unsigned long      UL;
+    typedef long long          LL;
+    typedef unsigned long long ULL;
+    typedef size_t             Size;
+    typedef std::string        Str;
+};
+
 int main(int argc, char* argv[])
 {
     try
     {
         // declare and set defaults
-        ArgParser::Type::B    b    = 0;
-        ArgParser::Type::C    c    = 0;
-        ArgParser::Type::UC   uc   = 0;
-        ArgParser::Type::S    s    = 0;
-        ArgParser::Type::US   us   = 0;
-        ArgParser::Type::N    n    = 0;
-        ArgParser::Type::UN   un   = 0;
-        ArgParser::Type::L    l    = 0;
-        ArgParser::Type::UL   ul   = 0;
-        ArgParser::Type::LL   ll   = 0;
-        ArgParser::Type::ULL  ull  = 0;
-        ArgParser::Type::Size size = 0;
-        ArgParser::Type::Str  str  = "";
+        ArgParserType::B    b    = 0;
+        ArgParserType::C    c    = 0;
+        ArgParserType::UC   uc   = 0;
+        ArgParserType::S    s    = 0;
+        ArgParserType::US   us   = 0;
+        ArgParserType::N    n    = 0;
+        ArgParserType::UN   un   = 0;
+        ArgParserType::L    l    = 0;
+        ArgParserType::UL   ul   = 0;
+        ArgParserType::LL   ll   = 0;
+        ArgParserType::ULL  ull  = 0;
+        ArgParserType::Size size = 0;
+        ArgParserType::Str  str  = "";
 
         // define arguments
         ArgParser args("ArgParserTest");
